@@ -338,41 +338,16 @@ const INITIAL_BADGES = [
   { id: "6", name: "Matrix Kaşifi", desc: "Gizli kod", icon: "💊", unlocked: false, story: "Tavşan deliğini takip ettin. Gerçeklik bir simülasyon mu?", rarity: "Efsanevi" }
 ];
 
-const INITIAL_LEADERBOARD = [
-  { id: "l1", rank: 1, name: "Elif K.", xp: 2840, avatar: "✦", lvl: 12, branch: "9-D", isAdmin: false },
-  { id: "l2", rank: 2, name: "Rıza M.", xp: 2410, avatar: "/logo.png", lvl: 7, me: true, branch: "9-D", isAdmin: false },
-  { id: "l3", rank: 3, name: "Aras D.", xp: 2380, avatar: "◈", lvl: 7, branch: "9-D", isAdmin: false },
-  { id: "l4", rank: 4, name: "Zeynep S.", xp: 2210, avatar: "⬙", lvl: 6, branch: "9-D", isAdmin: false },
-  { id: "l5", rank: 5, name: "Can B.", xp: 1980, avatar: "⚡", lvl: 6, branch: "9-D", isAdmin: false },
-  { id: "l6", rank: 6, name: "Defne T.", xp: 1840, avatar: "📐", lvl: 5, branch: "9-D", isAdmin: false }
-];
+const INITIAL_LEADERBOARD = [];
 
-const INITIAL_EVENTS = [
-  { id: "e1", title: "9VERSE Hackathon & AI Atölyesi", day: "Yarın", time: "16:30", loc: "Lab 2", count: 18, dot: "bg-zinc-200" },
-  { id: "e2", title: "Sınıf Turnuvası (Arena Finali)", day: "Cuma", time: "15:00", loc: "Arena", count: 32, dot: "bg-zinc-400" },
-  { id: "e3", title: "9. Sınıf 1. Yazılı Hazırlık Analizi", day: "Pazartesi", time: "10:00", loc: "9-D Amfi", count: 28, dot: "bg-amber-300" }
-];
+const INITIAL_EVENTS = [];
 
-const INITIAL_SCHEDULE = [
-  { id: "s1", hour: "08:30 - 09:10", subject: "Matematik", topic: "Mantık & Doğruluk Tabloları", teacher: "A. Yılmaz", icon: "📐" },
-  { id: "s2", hour: "09:20 - 10:00", subject: "Fizik", topic: "Fiziksel Büyüklükler & Birimler", teacher: "M. Kaya", icon: "⚡" },
-  { id: "s3", hour: "10:10 - 10:50", subject: "Kimya", topic: "Simyadan Kimyaya Geçiş", teacher: "S. Demir", icon: "🧪" },
-  { id: "s4", hour: "11:00 - 11:40", subject: "Biyoloji", topic: "Canlıların Ortak Özellikleri", teacher: "E. Şahin", icon: "🧬" }
-];
+const INITIAL_SCHEDULE = [];
 
-const INITIAL_CLASS_MESSAGES = [
-  { id: "cm1", branch: "9-D", senderName: "Elif K.", senderAvatar: "✦", senderGrade: "9-D", text: "Yarınki Matematik Mantık sınavı için çalışma notlarını kontrol ettiniz mi?", time: "10:15" },
-  { id: "cm2", branch: "9-D", senderName: "Aras D.", senderAvatar: "◈", senderGrade: "9-D", text: "Evet, 9-D amfi sohbetinde doğruluk tabloları özeti mevcut!", time: "10:18" },
-  { id: "cm3", branch: "9-A", senderName: "Mert Y.", senderAvatar: "⚡", senderGrade: "9-A", text: "9-A amfisinde ders 10:30'da başlıyor arkadaşlar.", time: "09:40" },
-  { id: "cm4", branch: "9-B", senderName: "Selin B.", senderAvatar: "⬙", senderGrade: "9-B", text: "Fizik KISA MUZ kuralı ödevini bitiren var mı?", time: "09:00" },
-  { id: "cm5", branch: "9-C", senderName: "Caner T.", senderAvatar: "🧬", senderGrade: "9-C", text: "Kimya laboratuvarı hazırlık duyurusu açıklandı.", time: "08:50" }
-];
+const INITIAL_CLASS_MESSAGES = [];
 
-const INITIAL_ANON_POSTS = [
-  { id: "1", text: "9. Sınıf Fizik dersindeki KISA MUZ kuralını hatırlayan var mı?", avatar: "👾", votes: 14, voted: false, time: "12dk önce", authorName: "Ahmet K.", authorEmail: "ahmet@9verse.com", authorGrade: "9-D" },
-  { id: "2", text: "Matematik Mantık konusunda doğruluk tablosu özeti çıkaran paylaşabilir mi?", avatar: "👻", votes: 9, voted: false, time: "1s önce", authorName: "Zeynep S.", authorEmail: "zeynep@9verse.com", authorGrade: "9-D" },
-  { id: "3", text: "Kimya dersinde simyadan kimyaya geçiş yöntemleri sınavda çıkar dediler!", avatar: "🦊", votes: 24, voted: true, time: "3s önce", authorName: "Elif K.", authorEmail: "elif@9verse.com", authorGrade: "9-D" }
-];
+const INITIAL_ANON_POSTS = [];
+
 
 const REACTOR_WORDS = ["FİZİK", "DENGE", "YÖRÜNGE", "ATOM", "VERİ", "ALGORİTMA", "KUANTUM", "NEBULA", "VEKTÖR", "SİMETRİ", "SİBER", "MATRIX"];
 const LOGIC_PATTERNS = [
@@ -1972,7 +1947,7 @@ export default function App() {
                 <img src="/logo.png" alt="9VERSE" className="w-full h-full object-cover rounded-[20px]" />
               </button>
               <h2 className="display text-[24px] md:text-[26px] font-bold mt-3 tracking-wider bg-gradient-to-r from-white via-fuchsia-300 to-cyan-300 bg-clip-text text-transparent">
-                9VERSE Portal
+                9VERSE
               </h2>
               <p className="text-[11px] text-white/40 mt-0.5 font-mono tracking-widest">
                 Necip Fazıl Anadolu Lisesi
