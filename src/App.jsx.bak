@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { supabase } from './supabase';
 
 // Authentic 9th Grade 1st Unit Questions - EVET / HAYIR (True / False) Format across all core subjects
 const INITIAL_QUESTIONS = [
@@ -904,12 +903,25 @@ export default function App() {
     if (savedName) setRegName(savedName);
     if (savedEmail) setRegEmail(savedEmail);
 
-    // LocalStorage (Sadece Cache & Local UI Preferences)
     const saved = localStorage.getItem("9verse-app-data-v6");
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
+        if (parsed.userProfile) {
+          setUserProfile(parsed.userProfile);
+          setIsRegistered(true);
+          if (parsed.userProfile.grade) setSelectedChatBranch(parsed.userProfile.grade);
+          if (parsed.userProfile.name) setRegName(parsed.userProfile.name);
+          if (parsed.userProfile.email) setRegEmail(parsed.userProfile.email);
+          if (parsed.userProfile.password) {
+            setRegPassword(parsed.userProfile.password);
+            setRegPasswordConfirm(parsed.userProfile.password);
+          }
+        }
+        if (parsed.xp) setXp(parsed.xp);
         if (parsed.tasks) setTasks(parsed.tasks);
+        if (parsed.posts) setPosts(parsed.posts);
+        if (parsed.chatMessages) setChatMessages(parsed.chatMessages);
         if (parsed.badges) setBadges(parsed.badges);
         if (parsed.questions && parsed.questions.length >= INITIAL_QUESTIONS.length) {
           setQuestions(parsed.questions);
@@ -918,97 +930,16 @@ export default function App() {
         }
         if (parsed.events) setEvents(parsed.events);
         if (parsed.announcements) setAnnouncements(parsed.announcements);
+        if (parsed.leaderboard) setLeaderboard(parsed.leaderboard);
         if (parsed.isProtocolApproved) setIsProtocolApproved(parsed.isProtocolApproved);
         if (parsed.scheduleList) setScheduleList(parsed.scheduleList);
         if (parsed.hasSubmittedQuestionToday) setHasSubmittedQuestionToday(parsed.hasSubmittedQuestionToday);
+        if (parsed.branchRequests) setBranchRequests(parsed.branchRequests);
         setIsAdminAuthenticated(false);
       } catch (e) {
         console.error("LocalStorage load error:", e);
       }
     }
-
-    // SUPABASE VERİ ÇEKME
-    async function loadSupabaseData() {
-      // Chat Messages
-      const { data: messages } = await supabase.from('chat_messages').select('*').order('created_at', { ascending: true });
-      if (messages) setChatMessages(messages);
-
-      // Anon Posts
-      const { data: anonPosts } = await supabase.from('anon_posts').select('*').order('created_at', { ascending: false });
-      if (anonPosts) setPosts(anonPosts);
-
-      // Branch Requests
-      const { data: requests } = await supabase.from('branch_requests').select('*').order('created_at', { ascending: false });
-      if (requests) setBranchRequests(requests);
-
-      // Users (Leaderboard)
-      const { data: users } = await supabase.from('users').select('*').order('xp', { ascending: false });
-      if (users) {
-        setLeaderboard(users.map((u, i) => ({
-          id: u.id,
-          rank: i + 1,
-          name: u.name,
-          xp: u.xp,
-          avatar: u.avatar || "/logo.png",
-          lvl: Math.floor((u.xp || 0) / 200) + 1,
-          role: u.title,
-          branch: u.grade,
-          isAdmin: false,
-          me: savedEmail === u.email
-        })));
-
-        // Otomatik Giriş
-        if (savedEmail && savedPass) {
-          const matchedUser = users.find(u => u.email === savedEmail && u.password === savedPass);
-          if (matchedUser) {
-            setUserProfile({
-              name: matchedUser.name,
-              email: matchedUser.email,
-              password: matchedUser.password,
-              title: matchedUser.title,
-              grade: matchedUser.grade,
-              avatar: matchedUser.avatar || "/logo.png",
-              bio: `9VERSE ${matchedUser.grade} şubesi öğrencisi.`,
-              isAdmin: false,
-              accountType: "Öğrenci"
-            });
-            setXp(matchedUser.xp || 0);
-            setSelectedChatBranch(matchedUser.grade);
-            setIsRegistered(true);
-          }
-        }
-      }
-    }
-    loadSupabaseData();
-
-    // SUPABASE REALTIME DİNLEYİCİLERİ
-    const channels = supabase.channel('custom-all-channel')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_messages' }, payload => {
-        if (payload.eventType === 'INSERT') {
-          setChatMessages(prev => [...prev, payload.new]);
-        }
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'anon_posts' }, payload => {
-        if (payload.eventType === 'INSERT') {
-          setPosts(prev => [payload.new, ...prev]);
-        }
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'branch_requests' }, payload => {
-        if (payload.eventType === 'INSERT') {
-          setBranchRequests(prev => [payload.new, ...prev]);
-        } else if (payload.eventType === 'DELETE') {
-          setBranchRequests(prev => prev.filter(r => r.id !== payload.old.id));
-        }
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, payload => {
-        // Liderlik tablosunu veya aktif verileri güncellemek için yeniden veri çekebiliriz
-        loadSupabaseData(); 
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channels);
-    };
   }, []);
 
   useEffect(() => {
@@ -1068,13 +999,7 @@ export default function App() {
   }
 
   function addXp(amount) {
-    setXp((prev) => {
-      const newXp = prev + amount;
-      if (userProfile && userProfile.email) {
-        supabase.from('users').update({ xp: newXp }).eq('email', userProfile.email);
-      }
-      return newXp;
-    });
+    setXp((prev) => prev + amount);
     setShowConfetti(true);
     setTimeout(() => setShowConfetti(false), 1800);
   }
@@ -1162,65 +1087,34 @@ export default function App() {
   }
 
   // STUDENT LOGIN HANDLER (Existing Account)
-  async function handleStudentLogin(e) {
+  function handleStudentLogin(e) {
     if (e) e.preventDefault();
-    const inputEmail = regEmail.trim();
+    const savedPass = localStorage.getItem("9verse-user-password") || userProfile.password;
     const inputPass = regPassword.trim();
 
-    if (!inputEmail || !inputPass) {
-      showToast("🔑 Lütfen e-posta ve şifrenizi girin!");
+    if (!inputPass) {
+      showToast("🔑 Lütfen şifrenizi girin!");
       return;
     }
 
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', inputEmail)
-      .eq('password', inputPass)
-      .single();
-
-    if (error || !data) {
-      showToast("❌ Hatalı E-posta veya Şifre!");
+    if (savedPass && inputPass !== savedPass) {
+      showToast("❌ Hatalı Şifre! Lütfen doğru şifrenizi girin.");
       return;
     }
 
-    const loggedProfile = {
-      name: data.name,
-      email: data.email,
-      password: data.password,
-      title: data.title || "9. Sınıf Öğrencisi",
-      grade: data.grade,
-      avatar: data.avatar || "/logo.png",
-      bio: `9VERSE ${data.grade} şubesi öğrencisi.`,
-      isAdmin: false,
-      accountType: "Öğrenci"
-    };
-
-    localStorage.setItem("9verse-user-password", inputPass);
-    localStorage.setItem("9verse-user-name", data.name);
-    localStorage.setItem("9verse-user-email", inputEmail);
-
-    setUserProfile(loggedProfile);
-    setXp(data.xp || 0);
-    setSelectedChatBranch(data.grade);
     setIsRegistered(true);
     setShowRegistrationScreen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
-    showToast(`🔑 Hoş geldin, ${data.name}!`);
+    showToast(`Hoş geldin ${userProfile.name || regName || "Öğrenci"}! 🚀`);
   }
 
   // REGISTRATION HANDLER (New Account with Mandatory Branch Selection)
-  async function handleCompleteRegistration(e) {
+  function handleCompleteRegistration(e) {
     if (e) e.preventDefault();
     const name = regName.trim() || "Kaşif Öğrenci";
     const email = regEmail.trim();
     const password = regPassword.trim();
     const confirmPass = regPasswordConfirm.trim();
-
-    if (!regName.trim()) {
-      showToast("📝 Lütfen Ad Soyad girin!");
-      return;
-    }
 
     // 1. Mandatory Profile Photo Check
     if (!regAvatar || regAvatar === "/logo.png" || regAvatar === "✦" || !regAvatar.startsWith("data:")) {
@@ -1251,52 +1145,56 @@ export default function App() {
       showToast("🏫 Lütfen 9. Sınıf Şubenizi seçin! (9-A, 9-B, 9-C veya 9-D)");
       return;
     }
-
-    // Check if email exists
-    const { data: existingUser } = await supabase.from('users').select('id').eq('email', email).single();
-    if (existingUser) {
-       showToast("⚠️ Bu E-posta adresi zaten kayıtlı! Lütfen Giriş Yap sekmesini kullanın.");
-       return;
-    }
-
-    const { data, error } = await supabase.from('users').insert([{
+    
+    const newProfile = {
       name: name,
       email: email,
       password: password,
+      title: regTitle.trim() || "9. Sınıf Öğrencisi",
       grade: regGrade,
-      title: regTitle.trim() || "Siber Kaşif",
-      avatar: regAvatar,
-      xp: 0
-    }]).select().single();
-
-    if (error) {
-      showToast("❌ Kayıt başarısız oldu: " + error.message);
-      return;
-    }
-    
-    const newProfile = {
-      name: data.name,
-      email: data.email,
-      password: data.password,
-      title: data.title,
-      grade: data.grade,
-      avatar: data.avatar,
-      bio: `9VERSE ${data.grade} şubesi öğrencisi.`,
+      avatar: regAvatar || "/logo.png",
+      bio: `9VERSE ${regGrade} şubesi öğrencisi.`,
       isAdmin: false,
       accountType: "Öğrenci"
     };
 
     localStorage.setItem("9verse-user-password", password);
-    localStorage.setItem("9verse-user-name", data.name);
+    localStorage.setItem("9verse-user-name", name);
     localStorage.setItem("9verse-user-email", email);
 
     setUserProfile(newProfile);
-    setSelectedChatBranch(data.grade);
+    setSelectedChatBranch(regGrade);
     setIsRegistered(true);
     setShowRegistrationScreen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
 
-    showToast(`Kayıt Başarılı! Hoş geldin ${data.name}! (${newProfile.grade} Şubesi) 🚀`);
+    setLeaderboard((prev) => {
+      const exists = prev.some((item) => item.me);
+      if (exists) {
+        return prev.map((item) =>
+          item.me
+            ? { ...item, name: newProfile.name, avatar: newProfile.avatar, role: newProfile.title, branch: newProfile.grade }
+            : item
+        );
+      }
+      return [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          rank: prev.length + 1,
+          name: newProfile.name,
+          xp: xp,
+          avatar: newProfile.avatar,
+          lvl: currentLevel,
+          me: true,
+          role: newProfile.title,
+          branch: newProfile.grade,
+          isAdmin: false
+        }
+      ];
+    });
+
+    showToast(`Kayıt Başarılı! Hoş geldin ${name}! (${newProfile.grade} Şubesi) 🚀`);
   }
 
   function handleAdminLoginSubmit(e) {
@@ -1429,7 +1327,7 @@ export default function App() {
   }
 
   // Class Chat Message Handler (Supports Patron all-classes & chat freeze)
-  async function handleSendClassChatMessage() {
+  function handleSendClassChatMessage() {
     if (!newChatMessage.trim()) return;
     const isPatronUser = isAdminAuthenticated || userProfile.isAdmin;
 
@@ -1439,20 +1337,17 @@ export default function App() {
       return;
     }
 
-    const msgData = {
+    const msg = {
+      id: Date.now().toString(),
       branch: isPatronUser ? selectedChatBranch : userProfile.grade,
-      sender_name: isPatronUser ? "Patron" : userProfile.name,
-      sender_avatar: isPatronUser ? "👑" : userProfile.avatar,
-      sender_grade: isPatronUser ? "" : userProfile.grade,
+      senderName: isPatronUser ? "Patron" : userProfile.name,
+      senderAvatar: isPatronUser ? "👑" : userProfile.avatar,
+      senderGrade: isPatronUser ? "" : userProfile.grade,
+      isPatron: isPatronUser,
       text: newChatMessage.trim(),
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
-
-    const { error } = await supabase.from('chat_messages').insert([msgData]);
-    if (error) {
-      showToast("❌ Mesaj gönderilemedi!");
-      return;
-    }
-
+    setChatMessages((prev) => [...prev, msg]);
     setNewChatMessage("");
     addXp(15);
     triggerTaskCompletion(1); // Auto completes Task 2 (Chat veya Kutu'ya mesaj bırak)
@@ -1510,25 +1405,21 @@ export default function App() {
   }
 
   // Anonymous Post Handler (Stores author info for admin view)
-  async function submitAnonymousPost() {
+  function submitAnonymousPost() {
     if (!newPostText.trim()) return;
     const avatars = ["👾", "👻", "🦊", "🤖", "👽", "🎃", "🌌"];
-    
-    const postData = {
+    const newPost = {
+      id: Date.now().toString(),
       text: newPostText.trim(),
       avatar: userProfile.avatar.startsWith("data:") || userProfile.avatar.startsWith("/") ? avatars[Math.floor(Math.random() * avatars.length)] : userProfile.avatar,
       votes: 0,
-      author_name: userProfile.name,
-      author_email: userProfile.email || "ogrenci@9verse.com",
-      author_grade: userProfile.grade
+      voted: false,
+      time: "şimdi",
+      authorName: userProfile.name,
+      authorEmail: userProfile.email || "ogrenci@9verse.com",
+      authorGrade: userProfile.grade
     };
-
-    const { error } = await supabase.from('anon_posts').insert([postData]);
-    if (error) {
-      showToast("❌ Gönderilemedi!");
-      return;
-    }
-
+    setPosts([newPost, ...posts]);
     setNewPostText("");
     addXp(20);
     triggerTaskCompletion(1); // Auto completes Task 2 (Chat veya Kutu'ya mesaj bırak)
@@ -1538,19 +1429,15 @@ export default function App() {
     showToast("Anonim not bırakıldı +20 XP");
   }
 
-  async function votePost(id) {
-    const post = posts.find(p => p.id === id);
-    if (!post) return;
-    const newVotes = post.voted ? post.votes - 1 : post.votes + 1;
-    
-    // Optimistic UI update
-    setPosts(prev => prev.map(p => {
-      if (p.id !== id) return p;
-      return { ...p, votes: newVotes, voted: !p.voted };
-    }));
-
-    // Sadece count güncelleyelim (basit usül)
-    await supabase.from('anon_posts').update({ votes: newVotes }).eq('id', id);
+  function votePost(id) {
+    setPosts((prev) =>
+      prev.map((p) => {
+        if (p.id !== id) return p;
+        return p.voted
+          ? { ...p, votes: p.votes - 1, voted: false }
+          : { ...p, votes: p.votes + 1, voted: true };
+      })
+    );
   }
 
   // STUDENT DAILY QUESTION SUBMISSION
@@ -1700,11 +1587,9 @@ export default function App() {
     showToast("Ders programdan çıkarıldı.");
   }
 
-  async function handleAdminDeletePost(id) {
-    const { error } = await supabase.from('anon_posts').delete().eq('id', id);
-    if (!error) {
-      showToast("Gizli not silindi.");
-    }
+  function handleAdminDeletePost(id) {
+    setPosts((prev) => prev.filter((p) => p.id !== id));
+    showToast("Gizli not silindi.");
   }
 
   // 6 Arena Games Logic Handlers
@@ -3939,33 +3824,31 @@ export default function App() {
                             <strong className="text-amber-300">{req.name}</strong> kullanıcısı şube değişikliği talep ediyor.
                           </div>
                           <div className="mt-1 flex items-center gap-3 text-[12px] font-mono">
-                            <span className="text-red-300 line-through">Eski: {req.current_branch}</span>
+                            <span className="text-red-300 line-through">Eski: {req.currentBranch}</span>
                             <span>➡️</span>
-                            <span className="text-emerald-300 font-bold">Yeni: {req.requested_branch}</span>
+                            <span className="text-emerald-300 font-bold">Yeni: {req.requestedBranch}</span>
                           </div>
-                          <div className="text-[10px] text-white/40 mt-1">E-Posta: {req.user_email}</div>
+                          <div className="text-[10px] text-white/40 mt-1">E-Posta: {req.userId}</div>
                         </div>
                         <div className="flex gap-2">
                           <button
-                            onClick={async () => {
+                            onClick={() => {
                               // Onayla
-                              await supabase.from('users').update({ grade: req.requested_branch }).eq('email', req.user_email);
-                              await supabase.from('branch_requests').delete().eq('id', req.id);
-                              
-                              // Local update if the patron is the user
-                              if (req.user_email === userProfile.email) {
-                                setUserProfile(prev => ({...prev, grade: req.requested_branch}));
+                              setBranchRequests(prev => prev.filter(r => r.id !== req.id));
+                              // Local update if the patron is the user (which shouldn't happen, but just in case)
+                              if (req.name === userProfile.name) {
+                                setUserProfile(prev => ({...prev, grade: req.requestedBranch}));
                               }
-                              alert(`${req.name} isimli öğrencinin şubesi ${req.requested_branch} olarak güncellendi.`);
+                              alert(`${req.name} isimli öğrencinin şubesi ${req.requestedBranch} olarak güncellendi (Simülasyon).`);
                             }}
                             className="px-4 py-2 rounded-full bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500 hover:text-white font-bold transition flex items-center gap-1.5 shrink-0"
                           >
                             <span>✅</span> Onayla
                           </button>
                           <button
-                            onClick={async () => {
+                            onClick={() => {
                               // Reddet
-                              await supabase.from('branch_requests').delete().eq('id', req.id);
+                              setBranchRequests(prev => prev.filter(r => r.id !== req.id));
                               alert("Talep reddedildi.");
                             }}
                             className="px-4 py-2 rounded-full bg-red-500/20 text-red-300 hover:bg-red-500 hover:text-white font-bold transition flex items-center gap-1.5 shrink-0"
@@ -4156,7 +4039,7 @@ export default function App() {
                   </div>
                   <button
                     type="button"
-                    onClick={async () => {
+                    onClick={() => {
                       const newBranch = prompt("Geçmek istediğiniz şubeyi girin (Örn: 9-B):");
                       if (newBranch) {
                         const formattedBranch = newBranch.trim().toUpperCase();
@@ -4165,18 +4048,15 @@ export default function App() {
                             alert("Zaten bu şubedesiniz.");
                             return;
                           }
-                          const { error } = await supabase.from('branch_requests').insert([{
-                            user_email: userProfile.email || userProfile.name,
+                          setBranchRequests(prev => [...prev, {
+                            id: Date.now().toString(),
+                            userId: userProfile.email || userProfile.name,
                             name: userProfile.name,
-                            current_branch: userProfile.grade,
-                            requested_branch: formattedBranch,
+                            currentBranch: userProfile.grade,
+                            requestedBranch: formattedBranch,
                             status: 'pending'
                           }]);
-                          if (!error) {
-                            alert("Şube değiştirme talebiniz Patron'a iletildi. Onaylandığında şubeniz güncellenecektir.");
-                          } else {
-                            alert("Hata oluştu.");
-                          }
+                          alert("Şube değiştirme talebiniz Patron'a iletildi. Onaylandığında şubeniz güncellenecektir.");
                         } else {
                           alert("Geçersiz şube. Lütfen geçerli bir şube girin (Örn: 9-A, 9-B, 9-C, 9-D).");
                         }
