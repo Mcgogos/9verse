@@ -474,14 +474,16 @@ export default function App() {
   const [editBio, setEditBio] = useState("");
   const [editAvatar, setEditAvatar] = useState("");
 
-  // Registration Form State
+  // Registration & Login Form State
+  const [studentAuthMode, setStudentAuthMode] = useState("login"); // "login" or "register"
   const [regName, setRegName] = useState("");
+  const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
-  const [regGrade, setRegGrade] = useState("9-D");
+  const [regPasswordConfirm, setRegPasswordConfirm] = useState("");
+  const [regGrade, setRegGrade] = useState("9-A");
   const [regTitle, setRegTitle] = useState("Siber Kaşif");
   const [regAccountType, setRegAccountType] = useState("Öğrenci");
   const [regAvatar, setRegAvatar] = useState("/logo.png");
-  const [regBio, setRegBio] = useState("9VERSE 9. Sınıf platformuna katıldım!");
 
   // Questions, Tasks & Posts State
   const [questions, setQuestions] = useState(INITIAL_QUESTIONS);
@@ -577,11 +579,25 @@ export default function App() {
     setShow3DSplash(false);
     const savedPass = localStorage.getItem("9verse-user-password");
     const savedName = localStorage.getItem("9verse-user-name");
+    const savedEmail = localStorage.getItem("9verse-user-email");
+
     if (savedName) setRegName(savedName);
     else if (userProfile && userProfile.name) setRegName(userProfile.name);
     
-    if (savedPass) setRegPassword(savedPass);
-    else if (userProfile && userProfile.password) setRegPassword(userProfile.password);
+    if (savedEmail) setRegEmail(savedEmail);
+    else if (userProfile && userProfile.email) setRegEmail(userProfile.email);
+
+    if (savedPass) {
+      setRegPassword(savedPass);
+      setRegPasswordConfirm(savedPass);
+      setStudentAuthMode("login");
+    } else if (userProfile && userProfile.password) {
+      setRegPassword(userProfile.password);
+      setRegPasswordConfirm(userProfile.password);
+      setStudentAuthMode("login");
+    } else {
+      setStudentAuthMode("register");
+    }
 
     setIsPlayingMusic(true);
     setShowRegistrationScreen(true);
@@ -605,12 +621,17 @@ export default function App() {
     };
   }, []);
 
-  // 2. LOCALSTORAGE PERSISTENCE WITH EXPLICIT PASSWORD BACKUP
+  // 2. LOCALSTORAGE PERSISTENCE WITH EXPLICIT PASSWORD & EMAIL BACKUP
   useEffect(() => {
     const savedPass = localStorage.getItem("9verse-user-password");
     const savedName = localStorage.getItem("9verse-user-name");
-    if (savedPass) setRegPassword(savedPass);
+    const savedEmail = localStorage.getItem("9verse-user-email");
+    if (savedPass) {
+      setRegPassword(savedPass);
+      setRegPasswordConfirm(savedPass);
+    }
     if (savedName) setRegName(savedName);
+    if (savedEmail) setRegEmail(savedEmail);
 
     const saved = localStorage.getItem("9verse-app-data-v6");
     if (saved) {
@@ -620,7 +641,11 @@ export default function App() {
           setUserProfile(parsed.userProfile);
           setIsRegistered(true);
           if (parsed.userProfile.name) setRegName(parsed.userProfile.name);
-          if (parsed.userProfile.password) setRegPassword(parsed.userProfile.password);
+          if (parsed.userProfile.email) setRegEmail(parsed.userProfile.email);
+          if (parsed.userProfile.password) {
+            setRegPassword(parsed.userProfile.password);
+            setRegPasswordConfirm(parsed.userProfile.password);
+          }
         }
         if (parsed.xp) setXp(parsed.xp);
         if (parsed.tasks) setTasks(parsed.tasks);
@@ -769,21 +794,62 @@ export default function App() {
     showToast("🛡️ Günün Protokolü Onaylandı! +100 XP Bonus Kazanıldı ⚡");
   }
 
-  // REGISTRATION / AUTHENTICATION HANDLER
+  // STUDENT LOGIN HANDLER (Existing Account)
+  function handleStudentLogin(e) {
+    if (e) e.preventDefault();
+    const savedPass = localStorage.getItem("9verse-user-password") || userProfile.password;
+    const inputPass = regPassword.trim();
+
+    if (!inputPass) {
+      showToast("🔑 Lütfen şifrenizi girin!");
+      return;
+    }
+
+    if (savedPass && inputPass !== savedPass) {
+      showToast("❌ Hatalı Şifre! Lütfen hesabınıza ait doğru şifreyi girin.");
+      return;
+    }
+
+    setIsRegistered(true);
+    setShowRegistrationScreen(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    showToast(`Hoş geldin ${userProfile.name || regName || "Öğrenci"}! 🚀`);
+  }
+
+  // REGISTRATION HANDLER (New Account)
   function handleCompleteRegistration(e) {
     if (e) e.preventDefault();
     const name = regName.trim() || "Kaşif Öğrenci";
-    const password = regPassword.trim() || "";
+    const email = regEmail.trim();
+    const password = regPassword.trim();
+    const confirmPass = regPasswordConfirm.trim();
     const isAdminAccount = regAccountType === "Yönetici";
 
-    // Enforce Mandatory Profile Photo Upload
+    // 1. Mandatory Profile Photo Check
     if (!regAvatar || regAvatar === "/logo.png" || regAvatar === "✦" || !regAvatar.startsWith("data:")) {
       showToast("📷 Lütfen cihazınızdan bir Profil Fotoğrafı yükleyin! (Profil Resmi Zorunludur)");
       return;
     }
 
+    // 2. Mandatory Email Check
+    if (!email || !email.includes("@")) {
+      showToast("📧 Lütfen geçerli bir E-posta adresi girin! (Zorunludur)");
+      return;
+    }
+
+    // 3. Password Check
+    if (!password) {
+      showToast("🔑 Lütfen hesabınız için bir şifre belirleyin!");
+      return;
+    }
+
+    // 4. Double Password Confirmation Check (2 Kere Şifre Tekrar Zorunluluğu)
+    if (password !== confirmPass) {
+      showToast("❌ Girilen şifreler birbiriyle eşleşmiyor! İki alana da aynı şifreyi yazmalısınız.");
+      return;
+    }
+
     if (isAdminAccount && !isAdminAuthenticated) {
-      // Prompt for PIN 9V21#k if choosing Admin
       setAdminPinInput("");
       setAdminPinError(false);
       setShowAdminPinModal(true);
@@ -792,11 +858,12 @@ export default function App() {
     
     const newProfile = {
       name: name,
+      email: email,
       password: password,
       title: regTitle.trim() || (isAdminAccount ? "Sistem Yöneticisi" : "9. Sınıf Öğrencisi"),
       grade: regGrade,
       avatar: regAvatar || "/logo.png",
-      bio: regBio.trim() || "9VERSE 9. sınıf öğrencisiyim.",
+      bio: `9VERSE ${regGrade} şubesi öğrencisi.`,
       isAdmin: isAdminAccount,
       accountType: regAccountType
     };
@@ -806,6 +873,9 @@ export default function App() {
     }
     if (name) {
       localStorage.setItem("9verse-user-name", name);
+    }
+    if (email) {
+      localStorage.setItem("9verse-user-email", email);
     }
 
     setUserProfile(newProfile);
@@ -1503,134 +1573,241 @@ export default function App() {
               </button>
             </div>
 
-            {/* 1. STUDENT REGISTRATION FORM */}
+            {/* 1. STUDENT AUTHENTICATION FORM (LOGIN vs REGISTER) */}
             {entryMode === "student" && (
-              <form onSubmit={handleCompleteRegistration} className="mt-5 flex flex-col gap-4">
-                {/* Mandatory Profile Photo Upload Section (Preset Avatars Removed) */}
-                <div className="p-4 bg-white/[0.04] border border-white/10 rounded-[20px]">
-                  <div className="flex justify-between items-center mb-2.5">
-                    <label className="text-[12.5px] font-bold text-white block">
-                      📷 Profil Fotoğrafı Yükle * <span className="text-amber-400 font-mono text-[11px]">(ZORUNLU)</span>
-                    </label>
-                    {regAvatar && regAvatar.startsWith("data:") && (
-                      <span className="text-[10.5px] text-emerald-400 font-mono font-bold bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 flex items-center gap-1">
-                        ✓ Yüklendi
-                      </span>
-                    )}
-                  </div>
+              <div className="mt-5 flex flex-col gap-4">
+                {/* Student Sub-Tabs (Giriş Yap vs Yeni Kayıt Ol) */}
+                <div className="flex p-1 rounded-full bg-white/[0.04] border border-white/10 text-[12px] font-bold">
+                  <button
+                    type="button"
+                    onClick={() => setStudentAuthMode("login")}
+                    className={`flex-1 py-2 rounded-full transition ${
+                      studentAuthMode === "login"
+                        ? "bg-violet-600 text-white shadow-md"
+                        : "text-white/50 hover:text-white"
+                    }`}
+                  >
+                    🔑 Giriş Yap (Kayıtlı Hesap)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStudentAuthMode("register")}
+                    className={`flex-1 py-2 rounded-full transition ${
+                      studentAuthMode === "register"
+                        ? "bg-fuchsia-600 text-white shadow-md"
+                        : "text-white/50 hover:text-white"
+                    }`}
+                  >
+                    📝 Yeni Kayıt Ol
+                  </button>
+                </div>
 
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-full overflow-hidden p-0.5 bg-gradient-to-br from-violet-500 via-fuchsia-500 to-cyan-400 shrink-0 shadow-lg relative group">
-                      {regAvatar && regAvatar.startsWith("data:") ? (
-                        <img src={regAvatar} alt="Profil" className="w-full h-full object-cover rounded-full" />
-                      ) : (
-                        <div className="w-full h-full rounded-full bg-zinc-900 border border-white/20 flex flex-col items-center justify-center text-white/50 text-[10px] font-mono font-bold">
-                          <span className="text-[18px]">📷</span>
-                          <span>FOTO ŞART</span>
+                {/* A. LOGIN FORM FOR EXISTING STUDENTS */}
+                {studentAuthMode === "login" && (
+                  <form onSubmit={handleStudentLogin} className="flex flex-col gap-3.5">
+                    <div className="text-center p-3 rounded-[16px] bg-white/[0.03] border border-white/10">
+                      <div className="text-[12px] text-white/70">
+                        {userProfile && userProfile.name
+                          ? `👋 Hoş geldin ${userProfile.name}! Kayıtlı şifrenizle giriş yapın.`
+                          : "Öğrenci hesabınızla giriş yapın."}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-[12px] font-semibold text-white/70 block mb-1">
+                        E-Posta veya Ad Soyad
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={regEmail || regName}
+                        onChange={(e) => {
+                          setRegEmail(e.target.value);
+                          setRegName(e.target.value);
+                        }}
+                        placeholder="Örn: riza@9verse.com"
+                        className="w-full h-11 px-4 rounded-[14px] bg-white/[0.05] border border-white/10 text-[13.5px] focus:outline-none focus:border-violet-400/50"
+                      />
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <label className="text-[12px] font-semibold text-white/70 block">
+                          Hesap Şifreniz *
+                        </label>
+                        {regPassword && (
+                          <span className="text-[10px] text-emerald-400 font-mono font-bold flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                            💾 Kayıtlı Şifre Dolduruldu
+                          </span>
+                        )}
+                      </div>
+                      <input
+                        type="password"
+                        required
+                        value={regPassword}
+                        onChange={(e) => setRegPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className="w-full h-11 px-4 rounded-[14px] bg-white/[0.05] border border-white/10 text-[13.5px] focus:outline-none focus:border-violet-400/50 tracking-wider"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="mt-2 w-full py-3.5 rounded-full bg-gradient-to-r from-violet-600 via-fuchsia-600 to-cyan-500 font-bold text-[14px] text-white shadow-xl active:scale-95 transition"
+                    >
+                      🔑 Oturum Aç & Kampüse Giriş Yap 🚀
+                    </button>
+                  </form>
+                )}
+
+                {/* B. NEW STUDENT REGISTRATION FORM */}
+                {studentAuthMode === "register" && (
+                  <form onSubmit={handleCompleteRegistration} className="flex flex-col gap-4">
+                    {/* Mandatory Profile Photo Upload Section */}
+                    <div className="p-4 bg-white/[0.04] border border-white/10 rounded-[20px]">
+                      <div className="flex justify-between items-center mb-2.5">
+                        <label className="text-[12.5px] font-bold text-white block">
+                          📷 Profil Fotoğrafı Yükle * <span className="text-amber-400 font-mono text-[11px]">(ZORUNLU)</span>
+                        </label>
+                        {regAvatar && regAvatar.startsWith("data:") && (
+                          <span className="text-[10.5px] text-emerald-400 font-mono font-bold bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 flex items-center gap-1">
+                            ✓ Yüklendi
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 rounded-full overflow-hidden p-0.5 bg-gradient-to-br from-violet-500 via-fuchsia-500 to-cyan-400 shrink-0 shadow-lg relative group">
+                          {regAvatar && regAvatar.startsWith("data:") ? (
+                            <img src={regAvatar} alt="Profil" className="w-full h-full object-cover rounded-full" />
+                          ) : (
+                            <div className="w-full h-full rounded-full bg-zinc-900 border border-white/20 flex flex-col items-center justify-center text-white/50 text-[10px] font-mono font-bold">
+                              <span className="text-[18px]">📷</span>
+                              <span>FOTO ŞART</span>
+                            </div>
+                          )}
                         </div>
+
+                        <div className="flex-1 min-w-0">
+                          <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-gradient-to-r from-violet-600 via-fuchsia-600 to-cyan-500 border border-white/30 text-[12.5px] font-bold text-white cursor-pointer hover:scale-105 active:scale-95 transition shadow-lg">
+                            <span>📁 Cihazdan Resim Seç *</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => handleAvatarFileUpload(e, setRegAvatar)}
+                              className="hidden"
+                            />
+                          </label>
+                          <p className="text-[11px] text-white/50 mt-1.5 leading-snug">
+                            {regAvatar && regAvatar.startsWith("data:")
+                              ? "✅ Fotoğrafınız kaydedildi!"
+                              : "⚠️ Kayıt olmak için profil resmi seçiniz."}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Name */}
+                    <div>
+                      <label className="text-[12px] font-semibold text-white/70 block mb-1">
+                        Adınız ve Soyadınız *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={regName}
+                        onChange={(e) => setRegName(e.target.value)}
+                        placeholder="Örn: Rıza Yılmaz"
+                        className="w-full h-11 px-4 rounded-[14px] bg-white/[0.05] border border-white/10 text-[13.5px] focus:outline-none focus:border-violet-400/50"
+                      />
+                    </div>
+
+                    {/* E-Mail Address (Mandatory) */}
+                    <div>
+                      <label className="text-[12px] font-semibold text-white/70 block mb-1">
+                        E-Posta Adresiniz * <span className="text-amber-400 font-mono text-[10.5px]">(ZORUNLU)</span>
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        value={regEmail}
+                        onChange={(e) => setRegEmail(e.target.value)}
+                        placeholder="Örn: riza@9verse.com"
+                        className="w-full h-11 px-4 rounded-[14px] bg-white/[0.05] border border-white/10 text-[13.5px] focus:outline-none focus:border-violet-400/50"
+                      />
+                    </div>
+
+                    {/* Password Field 1 */}
+                    <div>
+                      <label className="text-[12px] font-semibold text-white/70 block mb-1">
+                        Hesap Şifreniz *
+                      </label>
+                      <input
+                        type="password"
+                        required
+                        value={regPassword}
+                        onChange={(e) => setRegPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className="w-full h-11 px-4 rounded-[14px] bg-white/[0.05] border border-white/10 text-[13.5px] focus:outline-none focus:border-violet-400/50 tracking-wider"
+                      />
+                    </div>
+
+                    {/* Password Field 2 (Double Password Check Confirmation) */}
+                    <div>
+                      <label className="text-[12px] font-semibold text-white/70 block mb-1">
+                        Şifre Tekrarı * <span className="text-amber-400 font-mono text-[10.5px]">(ZORUNLU)</span>
+                      </label>
+                      <input
+                        type="password"
+                        required
+                        value={regPasswordConfirm}
+                        onChange={(e) => setRegPasswordConfirm(e.target.value)}
+                        placeholder="••••••••"
+                        className={`w-full h-11 px-4 rounded-[14px] bg-white/[0.05] border text-[13.5px] focus:outline-none tracking-wider ${
+                          regPasswordConfirm && regPassword !== regPasswordConfirm
+                            ? "border-red-500/80 bg-red-500/10 text-red-300"
+                            : "border-white/10 focus:border-violet-400/50"
+                        }`}
+                      />
+                      {regPasswordConfirm && regPassword !== regPasswordConfirm && (
+                        <p className="text-[11px] text-red-400 font-semibold mt-1">
+                          ⚠️ Şifreler henüz birbiriyle eşleşmiyor.
+                        </p>
                       )}
                     </div>
 
-                    <div className="flex-1 min-w-0">
-                      <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-gradient-to-r from-violet-600 via-fuchsia-600 to-cyan-500 border border-white/30 text-[12.5px] font-bold text-white cursor-pointer hover:scale-105 active:scale-95 transition shadow-lg">
-                        <span>📁 Cihazdan Resim Seç *</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleAvatarFileUpload(e, setRegAvatar)}
-                          className="hidden"
-                        />
+                    {/* Şube Seçimi (Sadece 9-A, 9-B, 9-C, 9-D) */}
+                    <div>
+                      <label className="text-[12px] font-semibold text-white/70 block mb-1.5">
+                        9. Sınıf Şubeniz *
                       </label>
-                      <p className="text-[11px] text-white/50 mt-1.5 leading-snug">
-                        {regAvatar && regAvatar.startsWith("data:")
-                          ? "✅ Fotoğrafınız kaydedildi! Giriş yapabilirsiniz."
-                          : "⚠️ Giriş yapmak için cihazınızdan profil resmi seçiniz."}
-                      </p>
+                      <div className="grid grid-cols-4 gap-2">
+                        {AVAILABLE_BRANCHES.map((b) => (
+                          <button
+                            key={b}
+                            type="button"
+                            onClick={() => setRegGrade(b)}
+                            className={`h-11 rounded-[14px] font-bold text-[14px] border transition-all ${
+                              regGrade === b
+                                ? "bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white border-white shadow-md scale-[1.02]"
+                                : "bg-white/[0.05] border-white/10 text-white/60 hover:bg-white/10"
+                            }`}
+                          >
+                            {b}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                </div>
 
-                {/* Name */}
-                <div>
-                  <label className="text-[12px] font-semibold text-white/70 block mb-1">
-                    Adınız ve Soyadınız *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={regName}
-                    onChange={(e) => setRegName(e.target.value)}
-                    placeholder="Örn: Rıza Yılmaz"
-                    className="w-full h-11 px-4 rounded-[14px] bg-white/[0.05] border border-white/10 text-[13.5px] focus:outline-none focus:border-violet-400/50"
-                  />
-                </div>
-
-                {/* Password Field */}
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <label className="text-[12px] font-semibold text-white/70 block">
-                      Hesap Şifreniz (Giriş için kaydedilir) *
-                    </label>
-                    {regPassword && (
-                      <span className="text-[10px] text-emerald-400 font-mono font-bold flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                        💾 Kayıtlı Şifre Dolduruldu
-                      </span>
-                    )}
-                  </div>
-                  <input
-                    type="password"
-                    required
-                    value={regPassword}
-                    onChange={(e) => setRegPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full h-11 px-4 rounded-[14px] bg-white/[0.05] border border-white/10 text-[13.5px] focus:outline-none focus:border-violet-400/50 tracking-wider"
-                  />
-                </div>
-
-                {/* Şube Seçimi (Sadece 9-A, 9-B, 9-C, 9-D) */}
-                <div>
-                  <label className="text-[12px] font-semibold text-white/70 block mb-1.5">
-                    9. Sınıf Şubeniz *
-                  </label>
-                  <div className="grid grid-cols-4 gap-2">
-                    {AVAILABLE_BRANCHES.map((b) => (
-                      <button
-                        key={b}
-                        type="button"
-                        onClick={() => setRegGrade(b)}
-                        className={`h-11 rounded-[14px] font-bold text-[14px] border transition-all ${
-                          regGrade === b
-                            ? "bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white border-white shadow-md scale-[1.02]"
-                            : "bg-white/[0.05] border-white/10 text-white/60 hover:bg-white/10"
-                        }`}
-                      >
-                        {b}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Biyografi */}
-                <div>
-                  <label className="text-[12px] font-semibold text-white/70 block mb-1">
-                    Biyografi / Kısa Söz
-                  </label>
-                  <input
-                    type="text"
-                    value={regBio}
-                    onChange={(e) => setRegBio(e.target.value)}
-                    placeholder="9VERSE öğrencisiyim..."
-                    className="w-full h-11 px-4 rounded-[14px] bg-white/[0.05] border border-white/10 text-[13.5px] focus:outline-none"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="mt-2 w-full py-3.5 rounded-full bg-gradient-to-r from-violet-600 via-fuchsia-600 to-cyan-500 font-bold text-[14px] text-white shadow-xl active:scale-95 transition"
-                >
-                  9VERSE Evrenine Giriş Yap 🚀
-                </button>
-              </form>
+                    <button
+                      type="submit"
+                      className="mt-2 w-full py-3.5 rounded-full bg-gradient-to-r from-violet-600 via-fuchsia-600 to-cyan-500 font-bold text-[14px] text-white shadow-xl active:scale-95 transition"
+                    >
+                      📝 Kayıt Ol & Kampüse Giriş Yap 🚀
+                    </button>
+                  </form>
+                )}
+              </div>
             )}
 
             {/* 2. DEDICATED ADMIN LOGIN FORM (PIN MASKED WITH type="password") */}
