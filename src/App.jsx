@@ -406,7 +406,7 @@ const PRESET_AVATARS = [
 ];
 
 const AVAILABLE_BRANCHES = ["9-A", "9-B", "9-C", "9-D"];
-const ADMIN_PIN = "9V21#k";
+const ADMIN_PIN = "Eymen_61.";
 
 // Standard Chat Emojis (available for all students & Patron)
 const STANDARD_EMOJIS = [
@@ -2005,7 +2005,7 @@ export default function App() {
                         : "text-white/50 hover:text-white"
                     }`}
                   >
-                    🔑 Giriş Yap (Kayıtlı Hesap)
+                    🔑 Giriş Yap
                   </button>
                   <button
                     type="button"
@@ -2016,7 +2016,7 @@ export default function App() {
                         : "text-white/50 hover:text-white"
                     }`}
                   >
-                    📝 Yeni Kayıt Ol
+                    📝 Kayıt Ol
                   </button>
                 </div>
 
@@ -2245,7 +2245,7 @@ export default function App() {
                   <input
                     type="password"
                     required
-                    maxLength={6}
+                    maxLength={20}
                     value={adminLoginPassword}
                     onChange={(e) => {
                       setAdminLoginPassword(e.target.value);
@@ -2287,20 +2287,20 @@ export default function App() {
               Admin Giriş Şifresi
             </h3>
             <p className="text-[12.5px] text-white/60 mt-1">
-              Admin yönetim paneline erişmek için 6 karakterli yetkili şifrenizi girin.
+              Admin yönetim paneline erişmek için yetkili şifrenizi girin.
             </p>
 
             <form onSubmit={handleVerifyAdminPin} className="mt-5 flex flex-col gap-3">
               <input
                 type="password"
-                maxLength={6}
+                maxLength={20}
                 value={adminPinInput}
                 onChange={(e) => {
                   setAdminPinInput(e.target.value);
                   setAdminPinError(false);
                 }}
-                placeholder="••••••"
-                className={`w-full h-12 text-center tracking-[0.4em] font-mono font-bold text-[20px] rounded-[16px] bg-white/[0.05] border text-white focus:outline-none ${
+                placeholder="••••••••"
+                className={`w-full h-12 text-center tracking-[0.2em] font-mono font-bold text-[18px] rounded-[16px] bg-white/[0.05] border text-white focus:outline-none ${
                   adminPinError ? "border-red-500 bg-red-500/10" : "border-white/20 focus:border-violet-400"
                 }`}
                 autoFocus
@@ -2507,7 +2507,7 @@ export default function App() {
       <main className="relative z-10 md:pl-[136px] max-w-[1280px] mx-auto px-5 md:px-0 pb-[120px] md:pb-12 pt-[max(16px,var(--safe-area-inset-top))] md:pt-8 overflow-x-hidden">
         
         {/* Header Bar */}
-        <header className="flex items-center justify-between gap-4 mt-2 md:mt-0">
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2 md:mt-0">
           <div className="flex items-center gap-3">
             <button
               onClick={() => handleTabChange("kampus")}
@@ -2834,14 +2834,14 @@ export default function App() {
             {/* Günün Yıldızı / Nöbetçi Lider */}
             <div className={`col-span-12 lg:col-span-4 ${cardGlass} p-5 relative overflow-hidden group hover:scale-[1.01] transition-all border border-amber-400/30 bg-gradient-to-br from-amber-950/40 via-zinc-900/60 to-black shadow-[0_0_30px_rgba(245,158,11,0.15)] flex flex-col justify-between`}>
               <div>
-                <div className="flex items-center justify-between relative z-10 mb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
+                <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 relative z-10 mb-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping shrink-0" />
                     <span className="display text-[12.5px] font-bold tracking-widest text-amber-300">
                       👑 GÜNÜN YILDIZI • NÖBETÇİ LİDER
                     </span>
                   </div>
-                  <span className="px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 text-[10px] font-mono font-bold border border-amber-400/30">
+                  <span className="px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 text-[10px] font-mono font-bold border border-amber-400/30 self-start xl:self-auto">
                     9-D
                   </span>
                 </div>
@@ -2888,16 +2888,16 @@ export default function App() {
             {/* 9. Sınıf Ders Programı */}
             <div className="col-span-12 lg:col-span-4">
               <div className={`${cardGlass} p-5`}>
-                <div className="flex items-center justify-between mb-3">
+                <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 mb-3">
                   <h3 className="display text-[16px] font-semibold flex items-center gap-2">
                     <span>📅 9. Sınıf Bugünkü Dersler</span>
                   </h3>
                   {isPatron ? (
-                    <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold">
+                    <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold self-start xl:self-auto">
                       👑 Patron
                     </span>
                   ) : (
-                    <span className="px-2 py-0.5 rounded-full bg-white/10 text-[10px] text-cyan-300">
+                    <span className="px-2 py-0.5 rounded-full bg-white/10 text-[10px] text-cyan-300 self-start xl:self-auto">
                       {userProfile.grade} Şubesi
                     </span>
                   )}
@@ -3028,12 +3028,12 @@ export default function App() {
         {/* TAB 2: ARENA (FULL 6 playable mini games) */}
         {activeTab === "arena" && (
           <div className="mt-8">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h2 className="display text-[26px] font-semibold">9VERSE Arena</h2>
                 <p className="text-[13px] text-white/60 mt-0.5">6 Farklı Kuantum Oyun Modu ile XP Kazanın ve Sınıf Liginde Yükselin!</p>
               </div>
-              <span className="px-3 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/20 text-emerald-300 text-[11px] font-bold">
+              <span className="px-3 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/20 text-emerald-300 text-[11px] font-bold self-start sm:self-auto">
                 Canlı: 6 Aktif Oyun Modu
               </span>
             </div>
@@ -3911,8 +3911,8 @@ export default function App() {
       </main>
 
       {/* Mobile Navigation Bar (PUBLIC ITEMS ONLY - Admin removed) */}
-      <div className="md:hidden fixed bottom-6 inset-x-0 z-30 flex justify-center pointer-events-none">
-        <div className="pointer-events-auto flex items-center gap-1 p-1.5 rounded-full bg-[rgba(18,20,42,0.88)] backdrop-blur-2xl border border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.6)]">
+      <div className="md:hidden fixed bottom-4 inset-x-0 z-[160] flex justify-center pointer-events-none px-4">
+        <div className="pointer-events-auto flex items-center justify-between w-full max-w-[400px] p-1.5 rounded-full bg-[rgba(18,20,42,0.95)] backdrop-blur-2xl border border-white/20 shadow-[0_12px_40px_rgba(0,0,0,0.8)] overflow-x-auto hide-scrollbar">
           {[
             { id: "kampus", label: "Kampüs", icon: "◧" },
             { id: "arena", label: "Arena", icon: "◈" },
@@ -3924,16 +3924,16 @@ export default function App() {
             <button
               key={item.id}
               onClick={() => handleTabChange(item.id)}
-              className={`px-3 h-10 rounded-full flex items-center gap-1.5 text-[12px] font-semibold transition shrink-0 ${
+              className={`h-11 rounded-full flex items-center justify-center gap-1.5 text-[11px] font-semibold transition shrink-0 ${
                 activeTab === item.id
-                  ? "bg-white text-black shadow-md"
-                  : "text-white/50 hover:text-white/80"
+                  ? "bg-white text-black shadow-md px-3"
+                  : "text-white/50 hover:text-white/80 w-11"
               }`}
             >
-              <span>{item.icon}</span>
-              <span className={activeTab === item.id ? "" : "hidden xs:inline"}>
-                {item.label}
-              </span>
+              <span className="text-[16px]">{item.icon}</span>
+              {activeTab === item.id && (
+                <span>{item.label}</span>
+              )}
             </button>
           ))}
         </div>
@@ -4304,7 +4304,7 @@ export default function App() {
       )}
 
       {/* Floating Bottom-Right Controls: MP3 Player + WhatsApp directly underneath */}
-      <div className="fixed bottom-5 right-4 md:bottom-7 md:right-7 z-[150] flex flex-col items-end gap-2.5 pointer-events-auto">
+      <div className="fixed bottom-[80px] right-4 md:bottom-7 md:right-7 z-[150] flex flex-col items-end gap-2.5 pointer-events-auto">
         {/* Invisible YouTube Audio Player for Mabel Matiz - Vals (oLOOAFETHO0) */}
         {isPlayingMusic && (
           <iframe
