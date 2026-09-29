@@ -408,6 +408,56 @@ const PRESET_AVATARS = [
 const AVAILABLE_BRANCHES = ["9-A", "9-B", "9-C", "9-D"];
 const ADMIN_PIN = "9V21#k";
 
+// Standard Chat Emojis (available for all students & Patron)
+const STANDARD_EMOJIS = [
+  "😀", "😂", "🔥", "🚀", "💯", "👏", "🎉", "👍", "😎", "⚡",
+  "🎮", "📚", "💡", "🤔", "🥳", "🙌", "❤️", "✨", "🎯", "🏆"
+];
+
+// Exclusive VIP / Patron Emojis (for System Administrator / Patron only)
+const PATRON_EMOJIS = [
+  "👑", "🔱", "💎", "🦅", "🧿", "💼", "💰", "🪐", "🛡️", "🕶️",
+  "⚖️", "🚨", "⛔", "🔒", "⚡", "🌟"
+];
+
+// Moderation Lock Durations for Patron
+const LOCK_DURATIONS = [
+  { label: "1 dk", ms: 1 * 60 * 1000 },
+  { label: "5 dk", ms: 5 * 60 * 1000 },
+  { label: "10 dk", ms: 10 * 60 * 1000 },
+  { label: "1 saat", ms: 60 * 60 * 1000 },
+  { label: "5 saat", ms: 5 * 60 * 60 * 1000 },
+  { label: "10 saat", ms: 10 * 60 * 60 * 1000 },
+  { label: "24 saat", ms: 24 * 60 * 60 * 1000 },
+  { label: "Süresiz", ms: -1 }
+];
+
+// Active users database per branch
+const BRANCH_ACTIVE_USERS = {
+  "9-A": [
+    { id: "u-a1", name: "Elif K.", branch: "9-A", avatar: "👩‍🎓", role: "Öğrenci" },
+    { id: "u-a2", name: "Aras D.", branch: "9-A", avatar: "🧑‍🎓", role: "Öğrenci" },
+    { id: "u-a3", name: "Kerem Y.", branch: "9-A", avatar: "👨‍💻", role: "Öğrenci" },
+    { id: "u-a4", name: "Selin T.", branch: "9-A", avatar: "👩‍🔬", role: "Öğrenci" }
+  ],
+  "9-B": [
+    { id: "u-b1", name: "Can B.", branch: "9-B", avatar: "🧑‍💻", role: "Öğrenci" },
+    { id: "u-b2", name: "Melis A.", branch: "9-B", avatar: "👩‍🎓", role: "Öğrenci" },
+    { id: "u-b3", name: "Efe G.", branch: "9-B", avatar: "🧑‍🔬", role: "Öğrenci" }
+  ],
+  "9-C": [
+    { id: "u-c1", name: "Zeynep S.", branch: "9-C", avatar: "👩‍🎓", role: "Öğrenci" },
+    { id: "u-c2", name: "Bora M.", branch: "9-C", avatar: "🧑‍🚀", role: "Öğrenci" },
+    { id: "u-c3", name: "Nazlı O.", branch: "9-C", avatar: "👩‍💻", role: "Öğrenci" }
+  ],
+  "9-D": [
+    { id: "u-d1", name: "Rıza M.", branch: "9-D", avatar: "🚀", role: "Öğrenci" },
+    { id: "u-d2", name: "Defne T.", branch: "9-D", avatar: "👩‍🎓", role: "Öğrenci" },
+    { id: "u-d3", name: "Kaan Ö.", branch: "9-D", avatar: "🧑‍💻", role: "Öğrenci" },
+    { id: "u-d4", name: "Barış E.", branch: "9-D", avatar: "👨‍🔬", role: "Öğrenci" }
+  ]
+};
+
 // Quantum Vortex FX Canvas Engine (Swirling spiral galaxy wormhole with orbital waves)
 function SplashFXCanvas({ triggerRef }) {
   const canvasRef = useRef(null);
@@ -573,7 +623,7 @@ export default function App() {
   
   // Main Entry Screen Login Mode ("student" or "admin")
   const [entryMode, setEntryMode] = useState("student");
-  const [adminLoginName, setAdminLoginName] = useState("Sistem Yöneticisi");
+  const [adminLoginName, setAdminLoginName] = useState("Patron");
   const [adminLoginPassword, setAdminLoginPassword] = useState("");
   const [adminLoginError, setAdminLoginError] = useState(false);
 
@@ -652,6 +702,42 @@ export default function App() {
   const [selectedChatBranch, setSelectedChatBranch] = useState("9-D");
   const [chatMessages, setChatMessages] = useState(INITIAL_CLASS_MESSAGES);
   const [newChatMessage, setNewChatMessage] = useState("");
+
+  // Patron Moderation & Chat Freeze State
+  const [lockedBranches, setLockedBranches] = useState({
+    "9-A": false,
+    "9-B": false,
+    "9-C": false,
+    "9-D": false
+  });
+  const [lockedUsers, setLockedUsers] = useState({});
+  const [showLockUserModal, setShowLockUserModal] = useState(false);
+  const [targetLockUser, setTargetLockUser] = useState(null);
+  const [selectedLockDuration, setSelectedLockDuration] = useState(LOCK_DURATIONS[1]); // 5 dk default
+  const [nowTime, setNowTime] = useState(Date.now());
+
+  // Ticking timer for real-time lockout countdown
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNowTime(Date.now());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Format remaining lock time helper
+  function formatRemainingLockTime(lockedUntil) {
+    if (!lockedUntil) return "00:00";
+    if (lockedUntil === "permanent") return "Süresiz (Kalıcı)";
+    const diff = lockedUntil - Date.now();
+    if (diff <= 0) return "Süre doldu (Erişim Açılıyor)";
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+    if (hours > 0) {
+      return `${hours}s ${minutes}dk ${seconds}sn`;
+    }
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  }
 
   // Questions, Tasks & Posts State
   const [questions, setQuestions] = useState(INITIAL_QUESTIONS);
@@ -753,6 +839,33 @@ export default function App() {
   const currentXpInLevel = xp % 400;
   const completedTasksCount = tasks.filter((t) => t.done).length;
   const isAllTasksCompleted = completedTasksCount === 3;
+
+  // Patron & Moderation Derived Values
+  const isPatron = isAdminAuthenticated || userProfile.isAdmin;
+
+  // Active users in selected class branch
+  const branchActiveUsers = useMemo(() => {
+    const defaultList = BRANCH_ACTIVE_USERS[selectedChatBranch] || [];
+    // If logged in student is in this branch and not in mock list, include them
+    if (!isPatron && userProfile.name && !defaultList.some((u) => u.name === userProfile.name)) {
+      return [
+        { id: "u-me", name: userProfile.name, branch: userProfile.grade, avatar: userProfile.avatar, role: "Öğrenci" },
+        ...defaultList
+      ];
+    }
+    return defaultList;
+  }, [selectedChatBranch, isPatron, userProfile.name, userProfile.grade, userProfile.avatar]);
+
+  // Lock status of currently logged-in user
+  const currentUserLockInfo = (!isPatron)
+    ? (lockedUsers[userProfile.name] || (userProfile.email && lockedUsers[userProfile.email]))
+    : null;
+
+  const isCurrentUserLocked = Boolean(
+    currentUserLockInfo && (
+      currentUserLockInfo.lockedUntil === "permanent" || nowTime < currentUserLockInfo.lockedUntil
+    )
+  );
 
   function handleSplashBackgroundClick(e) {
     if (splashFxRef.current) {
@@ -960,13 +1073,21 @@ export default function App() {
     if (e) e.preventDefault();
     if (adminPinInput === ADMIN_PIN) {
       setIsAdminAuthenticated(true);
+      setUserProfile((prev) => ({
+        ...prev,
+        name: "Patron",
+        title: "Patron",
+        grade: "",
+        isAdmin: true,
+        accountType: "Yönetici"
+      }));
       setShowAdminPinModal(false);
       setActiveTab("admin");
       window.scrollTo({ top: 0, behavior: "smooth" });
-      showToast("🔒 Admin Yetkilendirmesi Başarılı ⚡");
+      showToast("👑 Patron Yetkilendirmesi Başarılı ⚡");
     } else {
       setAdminPinError(true);
-      showToast("Hatalı Admin Şifresi!");
+      showToast("❌ Hatalı Admin Şifresi!");
     }
   }
 
@@ -1103,13 +1224,13 @@ export default function App() {
     if (e) e.preventDefault();
     if (adminLoginPassword === ADMIN_PIN) {
       const adminProfile = {
-        name: adminLoginName.trim() || "Sistem Yöneticisi",
+        name: adminLoginName.trim() || "Patron",
         email: "admin@9verse.com",
         password: userProfile.password || regPassword || "",
-        title: "Kurucu Admin",
-        grade: "9-D",
+        title: "Patron",
+        grade: "",
         avatar: regAvatar || "/logo.png",
-        bio: "9VERSE Evrensel Sistem Yöneticisi.",
+        bio: "9VERSE Evrensel Patron.",
         isAdmin: true,
         accountType: "Yönetici"
       };
@@ -1121,7 +1242,7 @@ export default function App() {
       setAdminLoginPassword("");
       setAdminLoginError(false);
       window.scrollTo({ top: 0, behavior: "smooth" });
-      showToast("🔒 Admin Yetkisiyle Giriş Yapıldı! (Şifre Onaylandı) ⚡");
+      showToast("👑 Patron Yetkisiyle Giriş Yapıldı! (Şifre Onaylandı) ⚡");
     } else {
       setAdminLoginError(true);
       showToast("❌ Hatalı Admin Şifresi!");
@@ -1229,23 +1350,82 @@ export default function App() {
     showToast("ℹ️ Bu görevler elle işaretlenemez. Oyunu oynayarak veya mesaj atarak otomatik tamamlayabilirsiniz!");
   }
 
-  // Class Chat Message Handler
+  // Class Chat Message Handler (Supports Patron all-classes & chat freeze)
   function handleSendClassChatMessage() {
     if (!newChatMessage.trim()) return;
+    const isPatronUser = isAdminAuthenticated || userProfile.isAdmin;
+
+    // Check if branch chat is frozen by Patron
+    if (lockedBranches[selectedChatBranch] && !isPatronUser) {
+      showToast("🔒 Bu sınıf sohbeti Patron tarafından donduruldu!");
+      return;
+    }
+
     const msg = {
       id: Date.now().toString(),
-      branch: userProfile.grade,
-      senderName: userProfile.name,
-      senderAvatar: userProfile.avatar,
-      senderGrade: userProfile.grade,
+      branch: isPatronUser ? selectedChatBranch : userProfile.grade,
+      senderName: isPatronUser ? "Patron" : userProfile.name,
+      senderAvatar: isPatronUser ? "👑" : userProfile.avatar,
+      senderGrade: isPatronUser ? "" : userProfile.grade,
+      isPatron: isPatronUser,
       text: newChatMessage.trim(),
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
-    setChatMessages([...chatMessages, msg]);
+    setChatMessages((prev) => [...prev, msg]);
     setNewChatMessage("");
     addXp(15);
     triggerTaskCompletion(1); // Auto completes Task 2 (Chat veya Kutu'ya mesaj bırak)
-    showToast(`💬 Mesaj ${userProfile.grade} kanalında gönderildi (+15 XP)`);
+    showToast(isPatronUser ? `👑 Patron mesajı ${selectedChatBranch} sınıfına gönderildi` : `💬 Mesaj ${selectedChatBranch} kanalında gönderildi (+15 XP)`);
+  }
+
+  // Patron Chat Freeze Toggle Handler
+  function handleToggleChatLock() {
+    if (!isAdminAuthenticated && !userProfile.isAdmin) return;
+    setLockedBranches((prev) => {
+      const nextState = !prev[selectedChatBranch];
+      showToast(nextState ? `🔒 ${selectedChatBranch} sınıfı sohbeti donduruldu!` : `🔓 ${selectedChatBranch} sınıfı sohbet kilidi açıldı!`);
+      return {
+        ...prev,
+        [selectedChatBranch]: nextState
+      };
+    });
+  }
+
+  // Patron Speaker Lock Modal Handlers
+  function openLockModal(user) {
+    if (!isAdminAuthenticated && !userProfile.isAdmin) return;
+    setTargetLockUser(user);
+    setSelectedLockDuration(LOCK_DURATIONS[1]); // 5 dk default
+    setShowLockUserModal(true);
+  }
+
+  function handleConfirmLockUser() {
+    if (!targetLockUser) return;
+    const durationMs = selectedLockDuration.ms;
+    const until = durationMs === -1 ? "permanent" : Date.now() + durationMs;
+    setLockedUsers((prev) => ({
+      ...prev,
+      [targetLockUser.name]: {
+        userName: targetLockUser.name,
+        branch: targetLockUser.branch,
+        avatar: targetLockUser.avatar,
+        lockedUntil: until,
+        durationLabel: selectedLockDuration.label,
+        lockedAt: Date.now()
+      }
+    }));
+    setShowLockUserModal(false);
+    showToast(`🔒 ${targetLockUser.name} (${selectedLockDuration.label}) kilitlendi! Platform erişimi engellendi.`);
+  }
+
+  function unlockUser(userName) {
+    if (!isAdminAuthenticated && !userProfile.isAdmin) return;
+    setLockedUsers((prev) => {
+      const updated = { ...prev };
+      delete updated[userName];
+      return updated;
+    });
+    showToast(`🔓 ${userName} kullanıcısının kilidi kaldırıldı!`);
   }
 
   // Anonymous Post Handler (Stores author info for admin view)
@@ -1743,7 +1923,7 @@ export default function App() {
                 9VERSE
               </div>
               <div className="mt-2 text-[12px] md:text-[13px] tracking-[0.34em] text-zinc-300 font-mono font-bold uppercase">
-                ✦ KUANTUM VORTEX KAMPÜS PROTOKOLÜ ✦
+                ✦ NECİP FAZIL ANADOLU LİSESİ ✦
               </div>
             </div>
 
@@ -1757,11 +1937,6 @@ export default function App() {
               <span>🚀 KAMPÜSE GİRİŞ YAP</span>
               <span className="group-hover:translate-x-2 transition-transform">→</span>
             </button>
-
-            <div className="mt-4 text-[11.5px] text-zinc-300 font-mono tracking-widest pointer-events-none flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-white animate-ping" />
-              <span>Kuantum Dalga Efektleri İçin Ekrana Tıklayın</span>
-            </div>
           </div>
         </div>
       )}
@@ -1773,40 +1948,49 @@ export default function App() {
             <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full blur-[140px] bg-gradient-to-br from-violet-600/30 to-fuchsia-600/20" />
           </div>
 
-          <div className={`${cardGlass} w-full max-w-[500px] p-6 md:p-8 bg-[#13172b] relative z-10 shadow-2xl my-auto animate-[glitch_0.4s_ease]`}>
+          <div className={`${cardGlass} w-full max-w-[440px] p-5 md:p-7 bg-[#13172b] relative z-10 shadow-2xl my-auto animate-[glitch_0.4s_ease]`}>
             <div className="text-center">
-              <div className="w-20 h-20 mx-auto rounded-[24px] p-1 bg-gradient-to-br from-violet-500 via-fuchsia-500 to-cyan-400 shadow-[0_0_35px_rgba(168,85,247,0.5)]">
+              {/* Logo: Tapping 5 times quickly opens admin login */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (!window._logoTapCount) window._logoTapCount = 0;
+                  if (!window._logoTapTimer) window._logoTapTimer = null;
+                  window._logoTapCount++;
+                  clearTimeout(window._logoTapTimer);
+                  window._logoTapTimer = setTimeout(() => { window._logoTapCount = 0; }, 1500);
+                  if (window._logoTapCount >= 5) {
+                    window._logoTapCount = 0;
+                    setEntryMode("admin");
+                    setAdminLoginError(false);
+                  }
+                }}
+                className="w-20 h-20 mx-auto rounded-[24px] p-1 bg-gradient-to-br from-violet-500 via-fuchsia-500 to-cyan-400 shadow-[0_0_35px_rgba(168,85,247,0.5)] cursor-pointer active:scale-95 transition-transform"
+                title="9VERSE"
+              >
                 <img src="/logo.png" alt="9VERSE" className="w-full h-full object-cover rounded-[20px]" />
-              </div>
-              <h2 className="display text-[26px] font-bold mt-3 tracking-wider bg-gradient-to-r from-white via-fuchsia-300 to-cyan-300 bg-clip-text text-transparent">
+              </button>
+              <h2 className="display text-[24px] md:text-[26px] font-bold mt-3 tracking-wider bg-gradient-to-r from-white via-fuchsia-300 to-cyan-300 bg-clip-text text-transparent">
                 9VERSE Portal
               </h2>
+              <p className="text-[11px] text-white/40 mt-0.5 font-mono tracking-widest">
+                Necip Fazıl Anadolu Lisesi
+              </p>
             </div>
 
-            <div className="mt-5 flex p-1 rounded-full bg-white/[0.06] border border-white/10">
-              <button
-                type="button"
-                onClick={() => { setEntryMode("student"); setAdminLoginError(false); }}
-                className={`flex-1 py-2.5 rounded-full text-[13px] font-bold transition flex items-center justify-center gap-2 ${
-                  entryMode === "student"
-                    ? "bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-lg scale-[1.02]"
-                    : "text-white/60 hover:text-white"
-                }`}
-              >
-                <span>👨‍🎓 Öğrenci Girişi</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => { setEntryMode("admin"); setAdminLoginError(false); }}
-                className={`flex-1 py-2.5 rounded-full text-[13px] font-bold transition flex items-center justify-center gap-2 ${
-                  entryMode === "admin"
-                    ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg scale-[1.02]"
-                    : "text-white/60 hover:text-white"
-                }`}
-              >
-                <span>⚡ Admin Girişi</span>
-              </button>
-            </div>
+            {/* Admin mode active - show back button */}
+            {entryMode === "admin" && (
+              <div className="mt-4 flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => { setEntryMode("student"); setAdminLoginError(false); }}
+                  className="px-4 py-1.5 rounded-full bg-white/10 text-white/60 hover:text-white text-[12px] font-semibold transition flex items-center gap-1.5"
+                >
+                  <span>←</span>
+                  <span>Öğrenci Girişine Dön</span>
+                </button>
+              </div>
+            )}
 
             {/* 1. STUDENT AUTHENTICATION FORM */}
             {entryMode === "student" && (
@@ -1838,13 +2022,6 @@ export default function App() {
 
                 {studentAuthMode === "login" && (
                   <form onSubmit={handleStudentLogin} className="flex flex-col gap-3.5">
-                    <div className="text-center p-3 rounded-[16px] bg-white/[0.03] border border-white/10">
-                      <div className="text-[12px] text-white/70">
-                        {userProfile && userProfile.name
-                          ? `👋 Hoş geldin ${userProfile.name}! Kayıtlı şifrenizle giriş yapın.`
-                          : "Öğrenci hesabınızla giriş yapın."}
-                      </div>
-                    </div>
 
                     <div>
                       <label className="text-[12px] font-semibold text-white/70 block mb-1">
@@ -2056,7 +2233,7 @@ export default function App() {
                     type="text"
                     value={adminLoginName}
                     onChange={(e) => setAdminLoginName(e.target.value)}
-                    placeholder="Örn: Sistem Yöneticisi"
+                    placeholder="Örn: Patron"
                     className="w-full h-11 px-4 rounded-[14px] bg-white/[0.05] border border-white/10 text-[13.5px] focus:outline-none focus:border-cyan-400"
                   />
                 </div>
@@ -2311,7 +2488,11 @@ export default function App() {
             {renderAvatar(userProfile.avatar, userProfile.name, "w-10 h-10")}
           </button>
           <div className="w-[2px] h-4 bg-white/10 rounded-full" />
-          <div className="text-[10px] font-bold text-cyan-300">{userProfile.grade}</div>
+          {isPatron ? (
+            <div className="text-[10px] font-bold text-amber-300">👑</div>
+          ) : (
+            <div className="text-[10px] font-bold text-cyan-300">{userProfile.grade}</div>
+          )}
           <button
             onClick={handleUserLogout}
             className="w-10 h-10 rounded-[14px] bg-red-500/10 hover:bg-red-500/25 text-red-300 border border-red-500/30 flex items-center justify-center transition active:scale-95 cursor-pointer mt-1"
@@ -2339,17 +2520,18 @@ export default function App() {
                 <span className="display text-[18px] md:text-[20px] font-bold tracking-[0.15em] bg-gradient-to-r from-violet-400 via-fuchsia-300 to-cyan-300 bg-clip-text text-transparent">
                   9VERSE
                 </span>
-                <span className="px-2.5 py-0.5 rounded-full bg-violet-600/30 border border-violet-400/40 text-violet-300 text-[10px] font-bold">
-                  {userProfile.grade}
-                </span>
-                {isAdminAuthenticated && (
-                  <span className="px-2 py-0.5 rounded-full bg-cyan-400/20 border border-cyan-400/30 text-cyan-300 text-[10px] font-bold tracking-widest">
-                    ADMIN
+                {isPatron ? (
+                  <span className="px-2.5 py-0.5 rounded-full bg-amber-500/25 border border-amber-400/50 text-amber-300 text-[10px] font-bold flex items-center gap-1">
+                    👑 Patron
+                  </span>
+                ) : (
+                  <span className="px-2.5 py-0.5 rounded-full bg-violet-600/30 border border-violet-400/40 text-violet-300 text-[10px] font-bold">
+                    {userProfile.grade}
                   </span>
                 )}
               </div>
               <h1 className="display text-[22px] md:text-[28px] font-semibold tracking-tight leading-none mt-1">
-                Selam, {userProfile.name}{" "}
+                Selam, {isPatron ? "Patron" : userProfile.name}{" "}
                 <span className="inline-block animate-[glitch_3s_ease_infinite]">👋</span>
               </h1>
             </div>
@@ -2710,9 +2892,15 @@ export default function App() {
                   <h3 className="display text-[16px] font-semibold flex items-center gap-2">
                     <span>📅 9. Sınıf Bugünkü Dersler</span>
                   </h3>
-                  <span className="px-2 py-0.5 rounded-full bg-white/10 text-[10px] text-cyan-300">
-                    {userProfile.grade} Şubesi
-                  </span>
+                  {isPatron ? (
+                    <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold">
+                      👑 Patron
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 rounded-full bg-white/10 text-[10px] text-cyan-300">
+                      {userProfile.grade} Şubesi
+                    </span>
+                  )}
                 </div>
                 <div className="flex flex-col gap-2">
                   {scheduleList.map((item, idx) => (
@@ -2964,103 +3152,352 @@ export default function App() {
 
         {/* TAB 3: SINIF CHAT / SOHBET */}
         {activeTab === "chat" && (
-          <div className="mt-8 max-w-[900px]">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="mt-8 max-w-[1060px] mx-auto">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <h2 className="display text-[26px] font-semibold">9. Sınıf Canlı Chat Kanalları</h2>
-                <p className="text-[13px] text-white/60 mt-0.5">Tüm şube sohbetlerini inceleyebilirsiniz. Sadece kendi kayıtlı olduğunuz sınıfa mesaj yazabilirsiniz.</p>
+                <h2 className="display text-[26px] font-semibold flex items-center gap-2">
+                  <span>9. Sınıf Canlı Chat Kanalları</span>
+                  {isPatron && (
+                    <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[11px] font-bold">
+                      👑 Patron Modu (Tüm Sınıflar Açık)
+                    </span>
+                  )}
+                </h2>
+                <p className="text-[13px] text-white/60 mt-0.5">
+                  {isPatron
+                    ? "Patron olarak tüm sınıflarda sohbet edebilir, sınıf sohbetini dondurabilir veya konuşmacıları kilitleyebilirsiniz."
+                    : "Tüm şube sohbetlerini inceleyebilirsiniz. Sadece kendi kayıtlı olduğunuz sınıfa mesaj yazabilirsiniz."}
+                </p>
               </div>
 
               {/* Branch Channel Tabs */}
-              <div className="flex p-1 rounded-full bg-white/5 border border-white/10">
-                {AVAILABLE_BRANCHES.map((b) => (
-                  <button
-                    key={b}
-                    onClick={() => setSelectedChatBranch(b)}
-                    className={`px-4 py-1.5 rounded-full text-[12px] font-bold transition flex items-center gap-1.5 ${
-                      selectedChatBranch === b
-                        ? "bg-violet-600 text-white shadow-md"
-                        : "text-white/50 hover:text-white"
-                    }`}
-                  >
-                    <span>{b} Sınıfı</span>
-                    {userProfile.grade !== b && <span className="text-[10px]">🔒</span>}
-                  </button>
-                ))}
+              <div className="flex p-1 rounded-full bg-white/5 border border-white/10 shrink-0 overflow-x-auto">
+                {AVAILABLE_BRANCHES.map((b) => {
+                  const isAccessible = isPatron || userProfile.grade === b;
+                  return (
+                    <button
+                      key={b}
+                      onClick={() => setSelectedChatBranch(b)}
+                      className={`px-4 py-1.5 rounded-full text-[12px] font-bold transition flex items-center gap-1.5 shrink-0 ${
+                        selectedChatBranch === b
+                          ? "bg-violet-600 text-white shadow-md"
+                          : "text-white/50 hover:text-white"
+                      }`}
+                    >
+                      <span>{b} Sınıfı</span>
+                      {!isAccessible && <span className="text-[10px]">🔒</span>}
+                      {isPatron && <span className="text-[9px] text-amber-300">👑</span>}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Chat Box Container */}
-            <div className={`${cardGlass} mt-6 p-6 min-h-[500px] flex flex-col justify-between relative`}>
+            {/* Chat Box Container (Two-column layout: Left = Messages + Input, Right = Active Users) */}
+            <div className={`${cardGlass} mt-6 p-4 md:p-6 min-h-[580px] flex flex-col justify-between relative`}>
               {/* Channel Header Banner */}
-              <div className="pb-4 border-b border-white/10 flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full bg-emerald-400 animate-ping" />
+              <div className="pb-4 border-b border-white/10 flex flex-wrap justify-between items-center gap-3">
+                <div className="flex items-center gap-2.5">
+                  <span className={`w-3 h-3 rounded-full ${lockedBranches[selectedChatBranch] ? "bg-red-500 animate-pulse" : "bg-emerald-400 animate-ping"}`} />
                   <span className="font-bold text-[16px]">{selectedChatBranch} Sınıfı Sohbet Kanalı</span>
+                  {lockedBranches[selectedChatBranch] && (
+                    <span className="px-2.5 py-0.5 rounded-full bg-red-500/20 text-red-300 border border-red-500/40 text-[10.5px] font-bold">
+                      🔒 Sohbet Donduruldu
+                    </span>
+                  )}
                 </div>
-                {userProfile.grade === selectedChatBranch ? (
-                  <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold">
-                    ✅ Kayıtlı Sınıfınız (Erişim Açık)
-                  </span>
-                ) : (
-                  <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[11px] font-bold flex items-center gap-1">
-                    🔒 Kilitli Kanal (Sadece Okunabilir)
-                  </span>
-                )}
+
+                <div className="flex items-center gap-2.5">
+                  {/* Patron Sohbet Kilitle / Aç Butonu */}
+                  {isPatron && (
+                    <button
+                      onClick={handleToggleChatLock}
+                      className={`px-3.5 py-1.5 rounded-full font-bold text-[11.5px] transition flex items-center gap-1.5 shadow-md active:scale-95 cursor-pointer ${
+                        lockedBranches[selectedChatBranch]
+                          ? "bg-emerald-600 hover:bg-emerald-500 text-white"
+                          : "bg-red-600 hover:bg-red-500 text-white"
+                      }`}
+                      title={lockedBranches[selectedChatBranch] ? "Sohbet Kilidini Aç" : "Tüm Sınıfı Yazmaya Kilitle"}
+                    >
+                      <span>{lockedBranches[selectedChatBranch] ? "🔓 Sohbet Kilidini Aç" : "🔒 Sohbeti Kilitle"}</span>
+                    </button>
+                  )}
+
+                  {isPatron ? (
+                    <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[11px] font-bold flex items-center gap-1">
+                      👑 Patron Yetkili
+                    </span>
+                  ) : userProfile.grade === selectedChatBranch ? (
+                    <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold">
+                      ✅ Kayıtlı Sınıfınız
+                    </span>
+                  ) : (
+                    <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[11px] font-bold flex items-center gap-1">
+                      🔒 Kilitli Kanal (Salt Okunur)
+                    </span>
+                  )}
+                </div>
               </div>
 
-              {/* Message Feed */}
-              <div className="my-4 flex-1 overflow-y-auto max-h-[380px] flex flex-col gap-3 pr-2">
-                {chatMessages
-                  .filter((m) => m.branch === selectedChatBranch)
-                  .map((msg) => (
-                    <div key={msg.id} className="p-3.5 rounded-[18px] bg-white/[0.04] border border-white/10 flex gap-3 items-start">
-                      {renderAvatar(msg.senderAvatar, msg.senderName, "w-9 h-9")}
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-[13px] text-white">{msg.senderName}</span>
-                          <span className="text-[10px] px-1.5 py-0.2 rounded bg-violet-600/30 text-violet-300 font-bold">{msg.senderGrade}</span>
-                          <span className="text-[10.5px] text-white/40 ml-auto">{msg.time}</span>
-                        </div>
-                        <div className="mt-1 text-[13.5px] text-white/80 leading-relaxed">
-                          {msg.text}
-                        </div>
+              {/* Main Content: Left = Chat messages & input, Right = Active Users */}
+              <div className="my-4 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+                
+                {/* LEFT COLUMN: Message Stream + Emojis + Input (lg:col-span-8) */}
+                <div className="lg:col-span-8 flex flex-col justify-between">
+                  {/* Message Feed */}
+                  <div className="flex-1 overflow-y-auto max-h-[360px] min-h-[260px] flex flex-col gap-3 pr-2 scrollbar-thin">
+                    {chatMessages
+                      .filter((m) => m.branch === selectedChatBranch)
+                      .map((msg) => {
+                        const isMsgPatron = msg.isPatron || msg.senderName === "Patron";
+                        return (
+                          <div
+                            key={msg.id}
+                            className={`p-3.5 rounded-[18px] border flex gap-3 items-start transition ${
+                              isMsgPatron
+                                ? "bg-amber-500/[0.08] border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.1)]"
+                                : "bg-white/[0.04] border-white/10"
+                            }`}
+                          >
+                            {isMsgPatron ? (
+                              <div className="w-9 h-9 rounded-full bg-amber-500/20 border border-amber-400 flex items-center justify-center text-[16px] shrink-0 shadow">
+                                👑
+                              </div>
+                            ) : (
+                              renderAvatar(msg.senderAvatar, msg.senderName, "w-9 h-9")
+                            )}
+                            
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                {isMsgPatron ? (
+                                  <>
+                                    <span className="font-bold text-[13px] text-amber-300 flex items-center gap-1">
+                                      👑 Patron
+                                    </span>
+                                    <span className="text-[9.5px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/40">
+                                      YÖNETİCİ
+                                    </span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span className="font-bold text-[13px] text-white truncate">{msg.senderName}</span>
+                                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-violet-600/30 text-violet-300 font-bold">{msg.senderGrade || selectedChatBranch}</span>
+                                    
+                                    {/* Patron quick timeout button on student message */}
+                                    {isPatron && (
+                                      <button
+                                        onClick={() => openLockModal({ name: msg.senderName, branch: msg.senderGrade || selectedChatBranch, avatar: msg.senderAvatar })}
+                                        className="text-[10px] px-2 py-0.5 rounded bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white transition font-semibold flex items-center gap-1 cursor-pointer"
+                                        title={`${msg.senderName} adlı kullanıcıyı kilitle`}
+                                      >
+                                        <span>🔒 Kilitle</span>
+                                      </button>
+                                    )}
+                                  </>
+                                )}
+                                <span className="text-[10.5px] text-white/40 ml-auto shrink-0">{msg.time}</span>
+                              </div>
+                              <div className="mt-1 text-[13.5px] text-white/90 leading-relaxed break-words">
+                                {msg.text}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                    {chatMessages.filter((m) => m.branch === selectedChatBranch).length === 0 && (
+                      <div className="text-center py-12 text-white/40 text-[13px]">
+                        Henüz {selectedChatBranch} kanalında mesaj yazılmadı. İlk mesajı siz yazın!
                       </div>
-                    </div>
-                  ))}
-
-                {chatMessages.filter((m) => m.branch === selectedChatBranch).length === 0 && (
-                  <div className="text-center py-12 text-white/40 text-[13px]">
-                    Henüz {selectedChatBranch} kanalında mesaj yazılmadı. İlk mesajı siz yazın!
+                    )}
                   </div>
-                )}
-              </div>
 
-              {/* Message Input Bar or Lock Overlay */}
-              {userProfile.grade === selectedChatBranch ? (
-                <div className="pt-3 border-t border-white/10 flex gap-2">
-                  <input
-                    value={newChatMessage}
-                    onChange={(e) => setNewChatMessage(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleSendClassChatMessage()}
-                    placeholder={`${selectedChatBranch} sınıfına mesaj yazın...`}
-                    className="flex-1 h-12 px-5 rounded-full bg-white/[0.06] border border-white/15 text-[14px] focus:outline-none focus:border-violet-400"
-                  />
-                  <button
-                    onClick={handleSendClassChatMessage}
-                    className="px-6 h-12 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 font-bold text-[13px] active:scale-95 shadow-lg"
-                  >
-                    Gönder 🚀
-                  </button>
+                  {/* EMOJIS SELECTION BAR */}
+                  {(isPatron || userProfile.grade === selectedChatBranch) && !lockedBranches[selectedChatBranch] && (
+                    <div className="mt-3 pt-2 border-t border-white/10 flex flex-col gap-1.5">
+                      {/* Standard Emojis */}
+                      <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-thin">
+                        <span className="text-[11px] text-white/40 font-semibold mr-1 shrink-0">😊 Emojiler:</span>
+                        {STANDARD_EMOJIS.map((emoji) => (
+                          <button
+                            key={emoji}
+                            type="button"
+                            onClick={() => setNewChatMessage((prev) => prev + emoji)}
+                            className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/15 active:scale-90 text-[15px] flex items-center justify-center transition shrink-0 cursor-pointer"
+                            title={`Ekle: ${emoji}`}
+                          >
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Patron VIP Exclusive Emojis */}
+                      {isPatron && (
+                        <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-thin bg-amber-500/10 p-1.5 rounded-xl border border-amber-500/25">
+                          <span className="text-[11px] text-amber-300 font-bold mr-1 shrink-0 flex items-center gap-1">
+                            <span>👑</span>
+                            <span>Patron Özel:</span>
+                          </span>
+                          {PATRON_EMOJIS.map((emoji) => (
+                            <button
+                              key={emoji}
+                              type="button"
+                              onClick={() => setNewChatMessage((prev) => prev + emoji)}
+                              className="w-7 h-7 rounded-lg bg-amber-500/20 hover:bg-amber-500/40 border border-amber-400/40 active:scale-90 text-[15px] flex items-center justify-center transition shrink-0 cursor-pointer shadow"
+                              title={`Patron VIP Emoji: ${emoji}`}
+                            >
+                              {emoji}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Message Input Bar or Lock Overlays */}
+                  <div className="mt-3">
+                    {lockedBranches[selectedChatBranch] && !isPatron ? (
+                      <div className="p-4 rounded-[20px] bg-red-500/10 border border-red-500/30 text-red-200 text-center text-[13px] flex items-center justify-center gap-2">
+                        <span>🔒</span>
+                        <span><strong>Sohbet Kilitlendi:</strong> Bu sınıf sohbeti Patron tarafından donduruldu. Şu anda yalnızca Patron mesaj gönderebilir.</span>
+                      </div>
+                    ) : (isPatron || userProfile.grade === selectedChatBranch) ? (
+                      <div className="flex gap-2">
+                        <input
+                          value={newChatMessage}
+                          onChange={(e) => setNewChatMessage(e.target.value)}
+                          onKeyDown={(e) => e.key === "Enter" && handleSendClassChatMessage()}
+                          placeholder={
+                            isPatron
+                              ? `👑 Patron olarak ${selectedChatBranch} sınıfına mesaj yazın...`
+                              : `${selectedChatBranch} sınıfına mesaj yazın...`
+                          }
+                          className="flex-1 h-12 px-5 rounded-full bg-white/[0.06] border border-white/15 text-[14px] focus:outline-none focus:border-violet-400"
+                        />
+                        <button
+                          onClick={handleSendClassChatMessage}
+                          className="px-6 h-12 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 font-bold text-[13px] active:scale-95 shadow-lg cursor-pointer shrink-0"
+                        >
+                          Gönder 🚀
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="p-4 rounded-[20px] bg-amber-500/10 border border-amber-500/20 text-amber-200 text-center text-[13px]">
+                        🔒 <strong>Erişim Kısıtlı:</strong> Bu sohbet kanalı sadece {selectedChatBranch} sınıfı öğrencilerine açıktır. Sizin sınıfınız: <strong>{userProfile.grade}</strong>. Kendi sınıfınızın sohbetine bağlanmak için {userProfile.grade} sekmesine geçiş yapabilirsiniz.
+                      </div>
+                    )}
+                  </div>
                 </div>
-              ) : (
-                <div className="p-4 rounded-[20px] bg-amber-500/10 border border-amber-500/20 text-amber-200 text-center text-[13px]">
-                  🔒 <strong>Erişim Kısıtlı:</strong> Bu sohbet kanalı sadece {selectedChatBranch} sınıfı öğrencilerine açıktır. Sizin sınıfınız: <strong>{userProfile.grade}</strong>. Kendi sınıfınızın sohbetine bağlanmak için {userProfile.grade} sekmesine geçiş yapabilirsiniz.
+
+                {/* RIGHT COLUMN: Active Users Panel (lg:col-span-4) */}
+                <div className="lg:col-span-4 rounded-2xl bg-white/[0.03] border border-white/10 p-3.5 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                        <span className="font-bold text-[13px] text-white">Aktif Kullanıcılar</span>
+                      </div>
+                      <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-white/10 text-emerald-300">
+                        {branchActiveUsers.length + 1} Çevrimiçi
+                      </span>
+                    </div>
+
+                    {/* Active Users Stream */}
+                    <div className="mt-3 flex flex-col gap-2 max-h-[380px] overflow-y-auto scrollbar-thin pr-1">
+                      {/* Patron Card (Always at the top, NO grade!) */}
+                      <div className="p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/40 flex items-center justify-between shadow">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-8 h-8 rounded-full bg-amber-500/30 border border-amber-400 flex items-center justify-center text-[15px] shrink-0">
+                            👑
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-bold text-[12.5px] text-amber-300 flex items-center gap-1 truncate">
+                              Patron
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block" />
+                            </div>
+                            <div className="text-[10px] text-amber-200/70 font-mono">Sistem Yöneticisi</div>
+                          </div>
+                        </div>
+                        <span className="text-[9.5px] px-2 py-0.5 rounded-full bg-amber-500/25 text-amber-300 font-bold shrink-0">
+                          PATRON
+                        </span>
+                      </div>
+
+                      {/* Branch Students */}
+                      {branchActiveUsers.map((u) => {
+                        const isUserLocked = lockedUsers[u.name] && (
+                          lockedUsers[u.name].lockedUntil === "permanent" || nowTime < lockedUsers[u.name].lockedUntil
+                        );
+                        const isMe = !isPatron && userProfile.name === u.name;
+
+                        return (
+                          <div
+                            key={u.id}
+                            className={`p-2.5 rounded-xl border flex items-center justify-between transition ${
+                              isUserLocked
+                                ? "bg-red-500/10 border-red-500/30"
+                                : "bg-white/[0.02] border-white/5 hover:border-white/15"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-[14px] shrink-0">
+                                {u.avatar || "👤"}
+                              </div>
+                              <div className="min-w-0">
+                                <div className="font-semibold text-[12px] text-white truncate flex items-center gap-1">
+                                  {u.name}
+                                  {isMe && <span className="text-[9px] text-cyan-300 font-normal">(Siz)</span>}
+                                </div>
+                                <div className="text-[10px] text-white/40 flex items-center gap-1.5">
+                                  <span>{u.branch || selectedChatBranch}</span>
+                                  <span>•</span>
+                                  <span className={isUserLocked ? "text-red-400 font-bold" : "text-emerald-400"}>
+                                    {isUserLocked ? `🔒 Kilitli (${lockedUsers[u.name]?.durationLabel || ""})` : "● Çevrimiçi"}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Patron Action: Lock or Unlock Speaker */}
+                            {isPatron && (
+                              <div className="shrink-0 ml-1">
+                                {isUserLocked ? (
+                                  <button
+                                    onClick={() => unlockUser(u.name)}
+                                    className="px-2 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-white border border-emerald-500/30 text-[10px] font-bold transition cursor-pointer"
+                                    title="Kilidi Kaldır"
+                                  >
+                                    🔓 Aç
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => openLockModal(u)}
+                                    className="px-2 py-1 rounded-lg bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white border border-red-500/30 text-[10px] font-bold transition flex items-center gap-1 cursor-pointer"
+                                    title="Kullanıcıyı Kilitle (Site Erişimini Kes)"
+                                  >
+                                    <span>🔒</span>
+                                    <span>Kilitle</span>
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Bottom Note */}
+                  <div className="mt-3 pt-2.5 border-t border-white/10 text-[10.5px] text-white/40 text-center">
+                    {isPatron ? "👑 Konuşmacıları 1dk - Süresiz kilitleyebilirsiniz." : "💬 Sohbet kurallarına uyunuz."}
+                  </div>
                 </div>
-              )}
+
+              </div>
             </div>
           </div>
         )}
+
 
         {/* TAB 4: LİG */}
         {activeTab === "lig" && (
@@ -3158,9 +3595,19 @@ export default function App() {
                       {post.avatar}
                     </div>
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <span className="text-[12px] font-bold text-white/80">Anonim 9. Sınıf Öğrencisi</span>
                         <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/40">Gizli Kimlik</span>
+                        
+                        {/* Patron: Real sender identity reveal */}
+                        {isPatron && (
+                          <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold flex items-center gap-1.5">
+                            <span>👑</span>
+                            <span>👤 {post.authorName || "Bilinmiyor"}</span>
+                            <span>• 📧 {post.authorEmail || "—"}</span>
+                            <span>• 🏫 {post.authorGrade || "—"}</span>
+                          </span>
+                        )}
                       </div>
                       <div className="text-[14px] leading-[1.5] text-white/90">
                         {post.text}
@@ -3385,8 +3832,12 @@ export default function App() {
                 </div>
 
                 <h2 className="display text-[22px] font-bold mt-4 flex items-center gap-2">
-                  {userProfile.name}
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-violet-600 text-white font-bold">{userProfile.grade}</span>
+                  {isPatron ? "Patron" : userProfile.name}
+                  {isPatron ? (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500 text-black font-bold">👑 Patron</span>
+                  ) : (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-violet-600 text-white font-bold">{userProfile.grade}</span>
+                  )}
                 </h2>
                 <div className="text-[12px] text-cyan-300 font-mono mt-1">{userProfile.title}</div>
                 <div className="text-[12px] text-white/50 mt-1">{userProfile.email}</div>
@@ -3928,21 +4379,102 @@ export default function App() {
         </a>
       </div>
 
-      {/* Footer Info with Secret Admin Login Trigger */}
+      {/* Footer Info */}
       <div className="relative z-10 md:pl-[136px] max-w-[1280px] mx-auto px-6 pb-6 text-[11px] text-white/20 flex justify-between items-center">
-        <span>9VERSE PROTOCOL v3.0 • Quantum Vortex Edition</span>
-        <button
-          onClick={() => {
-            setAdminPinInput("");
-            setAdminPinError(false);
-            setShowAdminPinModal(true);
-          }}
-          className="text-white/30 hover:text-cyan-300 font-mono transition flex items-center gap-1"
-          title="Yönetici Giriş Paneli (PIN Korumalı)"
-        >
-          <span>⚡ Yönetici Girişi</span>
-        </button>
+        <span>9VERSE v3.0 • Necip Fazıl Anadolu Lisesi</span>
+        <span className="text-white/10">© 2026</span>
       </div>
+
+      {/* ==================== PATRON LOCK USER MODAL ==================== */}
+      {showLockUserModal && targetLockUser && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-lg">
+          <div className={`${cardGlass} w-full max-w-[420px] p-6 bg-[#151a32] shadow-2xl`}>
+            <div className="text-center mb-4">
+              <div className="w-16 h-16 mx-auto rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center text-[30px]">
+                🔒
+              </div>
+              <h3 className="display text-[18px] font-bold mt-3 text-white">Kullanıcıyı Kilitle</h3>
+              <p className="text-[12px] text-white/60 mt-1">
+                <strong className="text-red-300">{targetLockUser.name}</strong> ({targetLockUser.branch}) kullanıcısının tüm platform erişimini engellemek üzeresiniz.
+              </p>
+            </div>
+
+            <div className="text-[12px] font-semibold text-white/70 mb-2">Kilit Süresi Seçin:</div>
+            <div className="grid grid-cols-4 gap-2 mb-5">
+              {LOCK_DURATIONS.map((dur) => (
+                <button
+                  key={dur.label}
+                  type="button"
+                  onClick={() => setSelectedLockDuration(dur)}
+                  className={`py-2 rounded-xl text-[12px] font-bold border transition cursor-pointer ${
+                    selectedLockDuration.label === dur.label
+                      ? "bg-red-600 text-white border-red-500 shadow-md scale-105"
+                      : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  {dur.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowLockUserModal(false)}
+                className="flex-1 py-3 rounded-full bg-white/10 text-white/80 font-bold text-[13px] hover:bg-white/20 transition cursor-pointer"
+              >
+                İptal
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmLockUser}
+                className="flex-1 py-3 rounded-full bg-red-600 hover:bg-red-500 text-white font-bold text-[13px] shadow-lg transition cursor-pointer flex items-center justify-center gap-2"
+              >
+                <span>🔒</span>
+                <span>Kilitle ({selectedLockDuration.label})</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== FULL-SCREEN LOCKOUT OVERLAY (For locked users) ==================== */}
+      {isCurrentUserLocked && (
+        <div className="fixed inset-0 z-[9999] bg-[#080C18] flex items-center justify-center p-4" style={{ pointerEvents: "all" }}>
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full blur-[140px] bg-gradient-to-br from-red-600/30 to-red-900/30 animate-pulse" />
+          </div>
+
+          <div className={`${cardGlass} w-full max-w-[500px] p-8 text-center relative z-10 bg-[#151a32]`}>
+            <div className="w-24 h-24 mx-auto rounded-full bg-red-500/20 border-2 border-red-500 flex items-center justify-center text-[48px] animate-pulse">
+              ⛔
+            </div>
+
+            <h2 className="display text-[28px] font-bold mt-5 text-red-300">
+              Platform Erişimi Engellendi
+            </h2>
+            <p className="text-[14px] text-white/70 mt-3 leading-relaxed">
+              Hesabınız <strong className="text-red-400">Patron</strong> tarafından kilitlenmiştir. Kilit süresi boyunca 9VERSE platformundaki hiçbir aktiviteye erişemezsiniz.
+            </p>
+
+            <div className="mt-6 p-4 rounded-2xl bg-red-500/10 border border-red-500/30">
+              <div className="text-[12px] text-red-300 font-bold uppercase tracking-widest mb-1">Kalan Süre</div>
+              <div className="text-[32px] font-mono font-bold text-red-400">
+                {currentUserLockInfo ? formatRemainingLockTime(currentUserLockInfo.lockedUntil) : "—"}
+              </div>
+              <div className="text-[11px] text-white/40 mt-1">
+                Kilit Süresi: {currentUserLockInfo?.durationLabel || "Bilinmiyor"}
+              </div>
+            </div>
+
+            <div className="mt-5 text-[12px] text-white/40 flex items-center justify-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+              <span>Patron tarafından platform kısıtlaması uygulandı.</span>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
