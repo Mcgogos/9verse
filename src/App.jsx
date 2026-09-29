@@ -975,6 +975,16 @@ export default function App() {
     }, 1200);
   }
 
+  // User Logout Handler
+  function handleUserLogout() {
+    setIsRegistered(false);
+    setIsAdminAuthenticated(false);
+    setShowRegistrationScreen(true);
+    setStudentAuthMode("login");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    showToast("👋 Başarıyla oturum kapatıldı. Görüşmek üzere!");
+  }
+
   // Daily Question Handler (EVET / HAYIR)
   function handleAnswer(index) {
     if (selectedOption !== null) return;
@@ -2070,11 +2080,18 @@ export default function App() {
         </div>
 
         <div className="flex flex-col items-center gap-3">
-          <button onClick={() => handleTabChange("profil")} className="active:scale-95 transition">
+          <button onClick={() => handleTabChange("profil")} className="active:scale-95 transition" title="Profil">
             {renderAvatar(userProfile.avatar, userProfile.name, "w-10 h-10")}
           </button>
           <div className="w-[2px] h-4 bg-white/10 rounded-full" />
           <div className="text-[10px] font-bold text-cyan-300">{userProfile.grade}</div>
+          <button
+            onClick={handleUserLogout}
+            className="w-10 h-10 rounded-[14px] bg-red-500/10 hover:bg-red-500/25 text-red-300 border border-red-500/30 flex items-center justify-center transition active:scale-95 cursor-pointer mt-1"
+            title="Sistemden Çıkış Yap"
+          >
+            <span className="text-[15px]">🚪</span>
+          </button>
         </div>
       </nav>
 
@@ -2111,7 +2128,7 @@ export default function App() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {isAdminAuthenticated && (
               <button
                 onClick={() => {
@@ -2133,6 +2150,15 @@ export default function App() {
               title="3D Giriş Ekranını Tekrar Aç"
             >
               <span>🚀 Giriş Ekranı</span>
+            </button>
+
+            {/* Logout Button in Header Bar */}
+            <button
+              onClick={handleUserLogout}
+              className="px-3 py-1.5 rounded-full bg-red-500/15 hover:bg-red-500/30 text-red-300 hover:text-white border border-red-500/30 font-bold text-[11.5px] transition flex items-center gap-1.5 shadow-md active:scale-95 cursor-pointer"
+              title="Sistemden Çıkış Yap"
+            >
+              <span>🚪 Çıkış</span>
             </button>
 
             <div className={`${cardGlass} px-3.5 py-2 flex items-center gap-3 rounded-full`}>
@@ -3152,9 +3178,16 @@ export default function App() {
 
                 <button
                   onClick={openEditProfileModal}
-                  className="mt-6 w-full py-3 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-[13px] font-bold transition"
+                  className="mt-6 w-full py-3 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-[13px] font-bold transition cursor-pointer"
                 >
                   ✏️ Profili & Şubeyi Düzenle
+                </button>
+
+                <button
+                  onClick={handleUserLogout}
+                  className="mt-3 w-full py-3 rounded-full bg-red-500/15 hover:bg-red-500/30 text-red-300 hover:text-white border border-red-500/30 text-[13px] font-bold transition flex items-center justify-center gap-2 cursor-pointer active:scale-95 shadow-md"
+                >
+                  <span>🚪 Sistemden Çıkış Yap</span>
                 </button>
               </div>
             </div>
