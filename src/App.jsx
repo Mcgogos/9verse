@@ -112,6 +112,223 @@ const INITIAL_QUESTIONS = [
   }
 ];
 
+// 9. Sınıf Müfredatı + Genel Kültür + Komik ve İlginç Sorulardan Oluşan Zengin Düello Soru Havuzu
+const DUEL_QUESTIONS = [
+  // --- 9. SINIF DERSLERİ ---
+  {
+    id: "dq1",
+    tag: "📐 9. SINIF MATEMATİK • MANTIK",
+    q: "p: '2 en küçük asal sayıdır', q: '3 tek sayıdır'. (p ∧ q) önermesinin doğruluk değeri 1 midir?",
+    options: ["EVET", "HAYIR"],
+    correct: 0,
+    explain: "EVET! Hem p hem de q doğru (1) olduğundan (1 ∧ 1) = 1 (Doğru) olur."
+  },
+  {
+    id: "dq2",
+    tag: "⚡ 9. SINIF FİZİK • FİZİK BİLİMİNE GİRİŞ",
+    q: "Fizikte Kütle, Işık şiddeti ve Sıcaklık temel büyüklükler midir?",
+    options: ["EVET", "HAYIR"],
+    correct: 0,
+    explain: "EVET! KISA MUZ şifresindeki K (Kütle), I (Işık şiddeti) ve S (Sıcaklık) temel büyüklüklerdir."
+  },
+  {
+    id: "dq3",
+    tag: "🧪 9. SINIF KİMYA • KİMYA BİLİMİ",
+    q: "Simyacılar değersiz madenleri altına çevirmek ve ölümsüzlük iksirini (ab-ı hayat) bulmak için mi çalışmışlardır?",
+    options: ["EVET", "HAYIR"],
+    correct: 0,
+    explain: "EVET! Simyanın iki temel gayesi felsefe taşı ile madenleri altına çevirmek ve ab-ı hayatı bulmaktır."
+  },
+  {
+    id: "dq4",
+    tag: "🧬 9. SINIF BİYOLOJİ • YAŞAM BİLİMİ",
+    q: "Canlıların enerji üretmek için besin maddelerini parçalamasına 'Hücresel Solunum' denir mi?",
+    options: ["EVET", "HAYIR"],
+    correct: 0,
+    explain: "EVET! Hücresel solunum tüm canlıların ortak özelliğidir ve ATP enerjisi üretir."
+  },
+  {
+    id: "dq5",
+    tag: "📜 9. SINIF TARİH • TARİH VE ZAMAN",
+    q: "Tarihte ilk yazılı kanunları Sümer Kralı Urugakina mı yapmıştır?",
+    options: ["EVET", "HAYIR"],
+    correct: 0,
+    explain: "EVET! M.Ö. 2375 yılında Sümer Kralı Urugakina tarihin bilinen ilk yazılı kanunlarını hazırlamıştır."
+  },
+  {
+    id: "dq6",
+    tag: "🪐 9. SINIF COĞRAFYA • DOĞA VE İNSAN",
+    q: "Atmosferdeki gazların yaklaşık %78'ini Oksijen gazı mı oluşturur?",
+    options: ["EVET", "HAYIR"],
+    correct: 1,
+    explain: "HAYIR! %78'i Azottur (Nitrojen), Oksijen ise yaklaşık %21 oranındadır."
+  },
+  {
+    id: "dq7",
+    tag: "📖 9. SINIF EDEBİYAT • İLETİŞİM",
+    q: "Bir iletişim sürecinde alıcının göndericiye verdiği karşılığa veya tepkiye 'Dönüt (Geri Bildirim)' denir mi?",
+    options: ["EVET", "HAYIR"],
+    correct: 0,
+    explain: "EVET! Alıcının göndericiye verdiği tepki ve geri bildirime Dönüt (Feedback) denir."
+  },
+  {
+    id: "dq8",
+    tag: "🇬🇧 9. SINIF İNGİLİZCE • UNIT 1",
+    q: "'She don't like playing chess' cümlesi gramer kurallarına göre doğru bir İngilizce cümle midir?",
+    options: ["EVET", "HAYIR"],
+    correct: 1,
+    explain: "HAYIR! 'She' öznesi için 'doesn't' kullanılmalıdır: 'She doesn't like playing chess'."
+  },
+  {
+    id: "dq9",
+    tag: "📐 9. SINIF MATEMATİK • MANTIK",
+    q: "İki önerme birbirine denk (≡) ise doğruluk değerleri de kesinlikle birbirine eşit midir?",
+    options: ["EVET", "HAYIR"],
+    correct: 0,
+    explain: "EVET! Doğruluk değerleri aynı olan önermelere denk önermeler denir (p ≡ q)."
+  },
+  {
+    id: "dq10",
+    tag: "🧪 9. SINIF KİMYA • BİLEŞİKLER",
+    q: "Halk arasında 'Tuz Ruhu' olarak bilinen asidin kimyasal formülü HCl (Hidroklorik asit) midir?",
+    options: ["EVET", "HAYIR"],
+    correct: 0,
+    explain: "EVET! Yaygın adı tuz ruhu olan bileşik HCl'dir. Zaç yağı H₂SO₄, kezzap ise HNO₃'tür."
+  },
+
+  // --- GENEL KÜLTÜR SORULARI ---
+  {
+    id: "dq11",
+    tag: "🌍 GENEL KÜLTÜR • COĞRAFYA",
+    q: "Dünyanın yüzölçümü olarak en büyük çölü kumlarla kaplı Büyük Sahra Çölü müdür?",
+    options: ["EVET", "HAYIR"],
+    correct: 1,
+    explain: "HAYIR! Dünyanın en büyük çölü Antarktika Kutup Çölü'dür (14 milyon km²)."
+  },
+  {
+    id: "dq12",
+    tag: "🌍 GENEL KÜLTÜR • FİZİK & EVREN",
+    q: "Güneş'in uzaydaki gerçek rengi aslında sarı değil, saf beyaz mıdır?",
+    options: ["EVET", "HAYIR"],
+    correct: 0,
+    explain: "EVET! Güneş tüm dalga boylarında ışık yaydığı için beyazdır; atmosferimiz ışığı saçtığı için sarı görünür."
+  },
+  {
+    id: "dq13",
+    tag: "🌍 GENEL KÜLTÜR • BİYOLOJİ",
+    q: "İnsan vücudundaki en büyük organ Karaciğer midir?",
+    options: ["EVET", "HAYIR"],
+    correct: 1,
+    explain: "HAYIR! İnsan vücudunun en büyük organı Deri'dir (Cilt)."
+  },
+  {
+    id: "dq14",
+    tag: "🌍 GENEL KÜLTÜR • SANAT",
+    q: "Dünyaca ünlü 'Mona Lisa' tablosunu İtalyan sanatçı Leonardo da Vinci mi yapmıştır?",
+    options: ["EVET", "HAYIR"],
+    correct: 0,
+    explain: "EVET! Mona Lisa, Rönesans ustası Leonardo da Vinci tarafından yapılmıştır."
+  },
+  {
+    id: "dq15",
+    tag: "🌍 GENEL KÜLTÜR • MATEMATİK & ZAMAN",
+    q: "Takvimdeki 12 ayın tamamında en az 28 gün var mıdır?",
+    options: ["EVET", "HAYIR"],
+    correct: 0,
+    explain: "EVET! Bütün ayların içinde en az 28 gün mutlaka yer alır!"
+  },
+  {
+    id: "dq16",
+    tag: "🌍 GENEL KÜLTÜR • BİLİM",
+    q: "Şimşek çaktığında gök gürültüsünden önce şimşeğin ışığını görmemiz, ışığın sesten katbekat hızlı olması mıdır?",
+    options: ["EVET", "HAYIR"],
+    correct: 0,
+    explain: "EVET! Işık hızı saniyede ~300.000 km iken, ses hızı havada yalnızca saniyede ~340 metredir."
+  },
+
+  // --- KOMİK VE İLGİNÇ / ŞAŞIRTICI SORULAR ---
+  {
+    id: "dq17",
+    tag: "🤪 İLGİNÇ VE KOMİK • HAYVANLAR ALEMİ",
+    q: "Ahtapotların tam 3 tane kalbi ve mavi renkli kanı var mıdır?",
+    options: ["EVET", "HAYIR"],
+    correct: 0,
+    explain: "EVET! Ahtapotların 3 kalbi vardır ve kanlarında demir yerine bakır olduğu için kanları mavidir!"
+  },
+  {
+    id: "dq18",
+    tag: "🤪 İLGİNÇ VE KOMİK • BİLİMSEL EĞLENCE",
+    q: "Muz meyvesi içindeki doğal potasyum izotopu nedeniyle hafif derecede radyoaktif midir?",
+    options: ["EVET", "HAYIR"],
+    correct: 0,
+    explain: "EVET! Muzlar doğal Potasyum-40 içerir ve çok minik ölçüde radyoaktiftir, ancak yemek tamamen güvenlidir!"
+  },
+  {
+    id: "dq19",
+    tag: "🤪 İLGİNÇ VE KOMİK • UZAY BİLİMİ",
+    q: "Astronotlar uzayda ağlarsa yerçekimi olmadığı için gözyaşları akmaz, gözlerinin etrafında su topu olarak mı birikir?",
+    options: ["EVET", "HAYIR"],
+    correct: 0,
+    explain: "EVET! Yerçekimsiz ortamda gözyaşları yanaklardan süzülemez, jel gibi bir su küresi halinde gözde toplanır!"
+  },
+  {
+    id: "dq20",
+    tag: "🤪 İLGİNÇ VE KOMİK • TARİHİ GERÇEKLER",
+    q: "Ketçap 1830'lu yıllarda Amerika'da ishal ve hazımsızlık için ilaç (hap) olarak mı satılmıştır?",
+    options: ["EVET", "HAYIR"],
+    correct: 0,
+    explain: "EVET! Dr. John Cook Bennett 1834 yılında domates özlü ketçabı tıbbi bir ilaç tableti olarak patentlemiştir!"
+  },
+  {
+    id: "dq21",
+    tag: "🤪 İLGİNÇ VE KOMİK • BOTANİK",
+    q: "Çilek botanik bilimine göre aslında bir meyve değil, bir çiçek tabanı (yalancı meyve) midir?",
+    options: ["EVET", "HAYIR"],
+    correct: 0,
+    explain: "EVET! Çileğin etli kırmızı kısmı meyve değildir; gerçek meyveleri üzerindeki minik sarı çekirdeklerdir!"
+  },
+  {
+    id: "dq22",
+    tag: "🤪 İLGİNÇ VE KOMİK • HAYVANLAR",
+    q: "Flamingolar aslında beyaz-gri doğar, yedikleri karides ve yosunlardaki pigmentler yüzünden mi pembeleşir?",
+    options: ["EVET", "HAYIR"],
+    correct: 0,
+    explain: "EVET! Doğduklarında beyaz tüylüdürler; karotenoid içeren besinleri tükettikçe pembe olurlar!"
+  },
+  {
+    id: "dq23",
+    tag: "🤪 İLGİNÇ VE KOMİK • HAYVANLAR",
+    q: "Kuşlar arasında geriye doğru ve baş aşağı uçabilen tek kuş Sinek Kuşu (Kolibri) midir?",
+    options: ["EVET", "HAYIR"],
+    correct: 0,
+    explain: "EVET! Sinek kuşlarının kanat eklemleri 360 derece dönebildiği için geriye ve baş aşağı uçabilirler!"
+  },
+  {
+    id: "dq24",
+    tag: "🤪 İLGİNÇ VE KOMİK • ANATOMİ",
+    q: "Yeni doğan bebeklerde yetişkin bir insana göre daha fazla kemik mi vardır?",
+    options: ["EVET", "HAYIR"],
+    correct: 0,
+    explain: "EVET! Bebeklerde yaklaşık 270 kemik vardır, büyüdükçe birçoğu birbirine kaynar ve yetişkinde 206'ya düşer!"
+  },
+  {
+    id: "dq25",
+    tag: "🤪 İLGİNÇ VE KOMİK • ŞEHİR EFSANESİ",
+    q: "Japon balıklarının hafızasının sadece 3 saniye olduğu iddiası bilimsel bir gerçek midir?",
+    options: ["EVET", "HAYIR"],
+    correct: 1,
+    explain: "HAYIR! Bu yaygın bir şehir efsanesidir! Deneylerde Japon balıklarının 5 aydan fazla hafızaya sahip olduğu kanıtlanmıştır."
+  },
+  {
+    id: "dq26",
+    tag: "🤪 İLGİNÇ VE KOMİK • HAYVANLAR",
+    q: "Karıncalar hiçbir zaman insanlar gibi saatlerce derin uyumaz, gün boyu 1 dakikalık minik şekerlemeler mi yaparlar?",
+    options: ["EVET", "HAYIR"],
+    correct: 0,
+    explain: "EVET! Karıncalar gün boyunca yaklaşık 250 kez, her biri 1 dakikalık minik uyku molaları verirler!"
+  }
+];
+
 const INITIAL_BADGES = [
   { id: "1", name: "İlk Kıvılcım", desc: "İlk görevi tamamla", icon: "✦", unlocked: true, story: "9VERSE Evrenine ilk adım. Sistem seni fark etti.", rarity: "Nadir" },
   { id: "2", name: "Protokol Şampiyonu", desc: "Günün protokolünü onayla", icon: "🛡️", unlocked: false, story: "3 görevin tamamını bitirip günlük protokol onayını aldın.", rarity: "Epik" },
@@ -512,9 +729,11 @@ export default function App() {
   const [logicScore, setLogicScore] = useState(0);
   const [userLogicInput, setUserLogicInput] = useState("");
 
-  // 4. Arena Quiz Duel State
+  // 4. Arena Quiz Duel State (9. Sınıf + Genel Kültür + Komik/İlginç Sorular)
+  const [duelActiveQuestions, setDuelActiveQuestions] = useState([]);
   const [quizScore, setQuizScore] = useState(0);
   const [quizIndex, setQuizIndex] = useState(0);
+  const [quizAnswered, setQuizAnswered] = useState(null); // null, 'correct', 'wrong'
 
   // 5. Memory Matrix State
   const [memoryCards, setMemoryCards] = useState([]);
@@ -1319,15 +1538,20 @@ export default function App() {
     }
   }
 
-  // 4. Arena Quiz Duel
+  // 4. Arena Quiz Duel (9. Sınıf Müfredatı + Genel Kültür + Komik/İlginç Sorular)
   function startQuizGame() {
+    const shuffled = [...DUEL_QUESTIONS].sort(() => Math.random() - 0.5).slice(0, 5);
+    setDuelActiveQuestions(shuffled);
     setQuizScore(0);
     setQuizIndex(0);
+    setQuizAnswered(null);
     setActiveGame("quiz");
     triggerTaskCompletion(0);
   }
 
   function handleQuizAnswer(isCorrect) {
+    if (quizAnswered !== null) return;
+    setQuizAnswered(isCorrect ? "correct" : "wrong");
     if (isCorrect) {
       setQuizScore((prev) => prev + 1);
       addXp(30);
@@ -1335,13 +1559,16 @@ export default function App() {
     } else {
       showToast("❌ Yanlış Cevap!");
     }
-    if (quizIndex + 1 < questions.length && quizIndex < 4) {
+  }
+
+  function handleNextDuelQuestion() {
+    if (quizIndex + 1 < duelActiveQuestions.length) {
       setQuizIndex((prev) => prev + 1);
+      setQuizAnswered(null);
     } else {
-      setTimeout(() => {
-        showToast(`🎯 Quiz Düellosu Tamamlandı! Toplam Skor: ${quizScore + (isCorrect ? 1 : 0)}`);
-        setActiveGame(null);
-      }, 500);
+      const finalScore = quizScore;
+      showToast(`🎯 Quiz Düellosu Tamamlandı! Skorunuz: ${finalScore} / ${duelActiveQuestions.length}`);
+      setActiveGame(null);
     }
   }
 
@@ -3461,30 +3688,78 @@ export default function App() {
       )}
 
       {/* 4. Soru Arenası (Quiz Duel) Modal */}
-      {activeGame === "quiz" && (
+      {activeGame === "quiz" && duelActiveQuestions.length > 0 && duelActiveQuestions[quizIndex] && (
         <div className="fixed inset-0 z-[65] flex items-end md:items-center justify-center p-4 bg-black/60 backdrop-blur-[10px]">
-          <div className={`${cardGlass} w-full max-w-[460px] p-6 md:p-7 bg-[#1c1936]`}>
-            <div className="flex justify-between items-center">
-              <h3 className="display text-[18px] font-bold">🎯 9. SINIF DERS DÜELLOSU</h3>
-              <button onClick={() => setActiveGame(null)} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">✕</button>
+          <div className={`${cardGlass} w-full max-w-[480px] p-6 md:p-7 bg-[#1c1936] shadow-2xl`}>
+            <div className="flex justify-between items-center pb-3 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <span className="text-[22px]">🎯</span>
+                <h3 className="display text-[17px] font-bold text-white">9. SINIF DERS DÜELLOSU</h3>
+              </div>
+              <button onClick={() => setActiveGame(null)} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20">✕</button>
             </div>
-            <div className="mt-5">
-              <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-[11px] font-bold">Soru {quizIndex + 1}/5</span>
-              <div className="mt-3 text-[17px] font-semibold leading-snug">{questions[quizIndex]?.q}</div>
-              <div className="mt-6 grid grid-cols-2 gap-3">
+
+            <div className="mt-4">
+              <div className="flex justify-between items-center mb-2">
+                <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10.5px] font-bold tracking-wide">
+                  {duelActiveQuestions[quizIndex].tag}
+                </span>
+                <span className="text-[11px] text-white/50 font-mono">
+                  Soru {quizIndex + 1} / {duelActiveQuestions.length} • Skor: {quizScore}
+                </span>
+              </div>
+
+              <div className="mt-3 text-[16.5px] font-medium leading-[1.45] text-white min-h-[55px]">
+                {duelActiveQuestions[quizIndex].q}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="mt-5 grid grid-cols-2 gap-3">
                 <button
-                  onClick={() => handleQuizAnswer(questions[quizIndex]?.correct === 0)}
-                  className="py-4 rounded-[18px] bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 font-bold text-[16px] text-emerald-300"
+                  disabled={quizAnswered !== null}
+                  onClick={() => handleQuizAnswer(duelActiveQuestions[quizIndex].correct === 0)}
+                  className={`py-4 rounded-[18px] border font-bold text-[16px] transition-all flex items-center justify-center gap-2 ${
+                    quizAnswered !== null && duelActiveQuestions[quizIndex].correct === 0
+                      ? "bg-emerald-500 text-black border-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.5)] scale-[1.02]"
+                      : quizAnswered === "wrong" && duelActiveQuestions[quizIndex].correct !== 0
+                      ? "bg-white/5 border-white/10 text-white/30"
+                      : "bg-emerald-500/20 hover:bg-emerald-500/30 border-emerald-500/40 text-emerald-300 cursor-pointer"
+                  }`}
                 >
-                  ✅ EVET
+                  <span>✅ EVET</span>
                 </button>
                 <button
-                  onClick={() => handleQuizAnswer(questions[quizIndex]?.correct === 1)}
-                  className="py-4 rounded-[18px] bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 font-bold text-[16px] text-red-300"
+                  disabled={quizAnswered !== null}
+                  onClick={() => handleQuizAnswer(duelActiveQuestions[quizIndex].correct === 1)}
+                  className={`py-4 rounded-[18px] border font-bold text-[16px] transition-all flex items-center justify-center gap-2 ${
+                    quizAnswered !== null && duelActiveQuestions[quizIndex].correct === 1
+                      ? "bg-emerald-500 text-black border-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.5)] scale-[1.02]"
+                      : quizAnswered === "wrong" && duelActiveQuestions[quizIndex].correct !== 1
+                      ? "bg-white/5 border-white/10 text-white/30"
+                      : "bg-red-500/20 hover:bg-red-500/30 border-red-500/40 text-red-300 cursor-pointer"
+                  }`}
                 >
-                  ❌ HAYIR
+                  <span>❌ HAYIR</span>
                 </button>
               </div>
+
+              {/* Explanation & Next Button */}
+              {quizAnswered !== null && (
+                <div className="mt-4 p-4 rounded-[18px] bg-white/[0.05] border border-white/10">
+                  <div className={`text-[12px] font-bold ${quizAnswered === "correct" ? "text-emerald-300" : "text-amber-300"}`}>
+                    {quizAnswered === "correct" ? "🎉 TEBRİKLER! DOĞRU CEVAP (+30 XP)" : "💡 BİLGİ & ÇÖZÜM NOTU:"}
+                  </div>
+                  <div className="mt-1.5 text-[12.5px] text-white/80 leading-snug">
+                    {duelActiveQuestions[quizIndex].explain}
+                  </div>
+                  <button
+                    onClick={handleNextDuelQuestion}
+                    className="mt-3.5 w-full py-2.5 rounded-full bg-white text-black font-extrabold text-[12.5px] hover:bg-zinc-200 transition shadow-md cursor-pointer"
+                  >
+                    {quizIndex + 1 < duelActiveQuestions.length ? "Sıradaki Soru →" : "Düelloyu Tamamla 🏆"}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -3577,25 +3852,9 @@ export default function App() {
         </div>
       )}
 
-      {/* Floating Bottom-Left Sleek Obsidian & Silver WhatsApp Button (NO PHONE NUMBER TEXT DISPLAYED) */}
-      <a
-        href="https://wa.me/905301512861?text=Merhaba,%209VERSE%20Dijital%20Kamp%C3%BCs%20hakk%C4%B1nda%20bilgi%20almak%20istiyorum."
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-6 left-4 md:bottom-8 md:left-8 z-[150] px-4 py-2.5 rounded-full bg-[rgba(16,18,38,0.85)] border border-white/20 text-slate-200 backdrop-blur-2xl transition-all duration-300 flex items-center gap-2.5 shadow-[0_8px_32px_rgba(0,0,0,0.8),0_0_20px_rgba(255,255,255,0.1)] hover:scale-105 hover:border-cyan-400 hover:text-white select-none group"
-        title="WhatsApp İletişim Destek Hattı"
-      >
-        <div className="relative w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center shrink-0 group-hover:bg-emerald-500 group-hover:text-black transition-colors">
-          <span className="text-[15px]">💬</span>
-          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-        </div>
-        <span className="text-[12px] font-bold text-white tracking-wide">
-          WhatsApp İletişim
-        </span>
-      </a>
-
-      {/* Floating Bottom-Right YouTube Music Controller Widget */}
-      <div className="fixed bottom-6 right-4 md:bottom-8 md:right-8 z-[150] flex items-center gap-2">
+      {/* Floating Bottom-Right Controls: MP3 Player + WhatsApp directly underneath */}
+      <div className="fixed bottom-5 right-4 md:bottom-7 md:right-7 z-[150] flex flex-col items-end gap-2.5 pointer-events-auto">
+        {/* Invisible YouTube Audio Player for Mabel Matiz - Vals (oLOOAFETHO0) */}
         {isPlayingMusic && (
           <iframe
             width="1"
@@ -3608,6 +3867,7 @@ export default function App() {
           />
         )}
 
+        {/* 1. MP3 Player Control Bar */}
         <div
           onClick={toggleBackgroundMusic}
           className={`px-4 py-2.5 rounded-full border backdrop-blur-2xl transition-all duration-300 flex items-center gap-3 shadow-[0_8px_32px_rgba(0,0,0,0.8)] cursor-pointer group select-none ${
@@ -3649,6 +3909,23 @@ export default function App() {
             {isPlayingMusic ? "⏸" : "▶"}
           </button>
         </div>
+
+        {/* 2. Sleek WhatsApp Button (Directly underneath MP3 Player with label WhatsApp) */}
+        <a
+          href="https://wa.me/905301512861?text=Merhaba,%209VERSE%20Dijital%20Kamp%C3%BCs%20hakk%C4%B1nda%20bilgi%20almak%20istiyorum."
+          target="_blank"
+          rel="noopener noreferrer"
+          className="px-4 py-2 rounded-full bg-[rgba(16,18,38,0.92)] border border-white/20 text-slate-200 backdrop-blur-2xl transition-all duration-300 flex items-center gap-2.5 shadow-[0_8px_32px_rgba(0,0,0,0.8),0_0_20px_rgba(255,255,255,0.1)] hover:scale-105 hover:border-cyan-400 hover:text-white select-none group"
+          title="WhatsApp Destek Hattı"
+        >
+          <div className="relative w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center shrink-0 group-hover:bg-emerald-500 group-hover:text-black transition-colors">
+            <span className="text-[14px]">💬</span>
+            <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+          </div>
+          <span className="text-[12px] font-bold text-white tracking-wide">
+            WhatsApp
+          </span>
+        </a>
       </div>
 
       {/* Footer Info with Secret Admin Login Trigger */}
