@@ -406,7 +406,7 @@ const PRESET_AVATARS = [
 ];
 
 const AVAILABLE_BRANCHES = ["9-A", "9-B", "9-C", "9-D"];
-const ADMIN_PIN = "Eymen_61.";
+const ADMIN_PIN = "Eymen_61";
 
 // Standard Chat Emojis (available for all students & Patron)
 const STANDARD_EMOJIS = [
@@ -714,6 +714,7 @@ export default function App() {
   const [showLockUserModal, setShowLockUserModal] = useState(false);
   const [targetLockUser, setTargetLockUser] = useState(null);
   const [selectedLockDuration, setSelectedLockDuration] = useState(LOCK_DURATIONS[1]); // 5 dk default
+  const [branchRequests, setBranchRequests] = useState([]);
   const [nowTime, setNowTime] = useState(Date.now());
 
   // Ticking timer for real-time lockout countdown
@@ -958,6 +959,7 @@ export default function App() {
         if (parsed.isProtocolApproved) setIsProtocolApproved(parsed.isProtocolApproved);
         if (parsed.scheduleList) setScheduleList(parsed.scheduleList);
         if (parsed.hasSubmittedQuestionToday) setHasSubmittedQuestionToday(parsed.hasSubmittedQuestionToday);
+        if (parsed.branchRequests) setBranchRequests(parsed.branchRequests);
         setIsAdminAuthenticated(false);
       } catch (e) {
         console.error("LocalStorage load error:", e);
@@ -976,11 +978,11 @@ export default function App() {
       localStorage.setItem(
         "9verse-app-data-v6",
         JSON.stringify({
-          userProfile, xp, tasks, posts, chatMessages, badges, questions, events, announcements, leaderboard, isProtocolApproved, scheduleList, hasSubmittedQuestionToday, isAdminAuthenticated
+          userProfile, xp, tasks, posts, chatMessages, badges, questions, events, announcements, leaderboard, isProtocolApproved, scheduleList, hasSubmittedQuestionToday, isAdminAuthenticated, branchRequests
         })
       );
     }
-  }, [isRegistered, userProfile, xp, tasks, posts, chatMessages, badges, questions, events, announcements, leaderboard, isProtocolApproved, scheduleList, hasSubmittedQuestionToday, isAdminAuthenticated]);
+  }, [isRegistered, userProfile, xp, tasks, posts, chatMessages, badges, questions, events, announcements, leaderboard, isProtocolApproved, scheduleList, hasSubmittedQuestionToday, isAdminAuthenticated, branchRequests]);
 
   // Level Up Check
   const prevLevelRef = useRef(currentLevel);
@@ -1283,12 +1285,11 @@ export default function App() {
       name: editName.trim() || userProfile.name,
       password: updatedPass,
       title: editTitle.trim() || userProfile.title,
-      grade: editGrade,
+      grade: userProfile.grade,
       bio: editBio.trim() || userProfile.bio,
       avatar: editAvatar || userProfile.avatar
     };
     setUserProfile(updated);
-    setSelectedChatBranch(editGrade);
     if (updatedPass) {
       setRegPassword(updatedPass);
       localStorage.setItem("9verse-user-password", updatedPass);
@@ -2272,6 +2273,15 @@ export default function App() {
                 </button>
               </form>
             )}
+            
+            <div className="mt-8 text-center border-t border-white/5 pt-4">
+              <span className="text-[11px] font-mono tracking-widest text-white/30 uppercase block">
+                Designer & Coder
+              </span>
+              <span className="text-[12px] font-bold tracking-widest text-cyan-500/50 block mt-0.5">
+                Eymen HACIMURTAZAOĞLU
+              </span>
+            </div>
           </div>
         </div>
       )}
@@ -2470,12 +2480,12 @@ export default function App() {
                 onClick={() => handleTabChange(item.id)}
                 className={`w-[52px] h-[52px] rounded-[16px] flex flex-col items-center justify-center gap-[2px] transition-all relative ${
                   activeTab === item.id
-                    ? "bg-white text-black shadow-lg"
-                    : "text-white/40 hover:text-white/80 hover:bg-white/[0.06]"
+                    ? "bg-gradient-to-br from-cyan-400 to-violet-500 text-white shadow-[0_4px_15px_rgba(124,58,237,0.4)] border border-white/20"
+                    : "bg-white/5 text-white/70 hover:bg-white/15 hover:text-white border border-white/10"
                 }`}
               >
-                <span className="text-[16px]">{item.icon}</span>
-                <span className="text-[8px] tracking-widest font-semibold">
+                <span className="text-[18px]">{item.icon}</span>
+                <span className="text-[9px] tracking-widest font-bold">
                   {item.label.toUpperCase()}
                 </span>
               </button>
@@ -3316,14 +3326,14 @@ export default function App() {
                   {(isPatron || userProfile.grade === selectedChatBranch) && !lockedBranches[selectedChatBranch] && (
                     <div className="mt-3 pt-2 border-t border-white/10 flex flex-col gap-1.5">
                       {/* Standard Emojis */}
-                      <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-thin">
-                        <span className="text-[11px] text-white/40 font-semibold mr-1 shrink-0">😊 Emojiler:</span>
+                      <div className="flex flex-wrap items-center gap-1.5 pb-1">
+                        <span className="text-[11px] text-white/40 font-semibold mr-1 shrink-0 w-full sm:w-auto">😊 Emojiler:</span>
                         {STANDARD_EMOJIS.map((emoji) => (
                           <button
                             key={emoji}
                             type="button"
                             onClick={() => setNewChatMessage((prev) => prev + emoji)}
-                            className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/15 active:scale-90 text-[15px] flex items-center justify-center transition shrink-0 cursor-pointer"
+                            className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/15 active:scale-90 text-[16px] flex items-center justify-center transition shrink-0 cursor-pointer border border-white/10"
                             title={`Ekle: ${emoji}`}
                           >
                             {emoji}
@@ -3333,8 +3343,8 @@ export default function App() {
 
                       {/* Patron VIP Exclusive Emojis */}
                       {isPatron && (
-                        <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-thin bg-amber-500/10 p-1.5 rounded-xl border border-amber-500/25">
-                          <span className="text-[11px] text-amber-300 font-bold mr-1 shrink-0 flex items-center gap-1">
+                        <div className="flex flex-wrap items-center gap-1.5 pb-1 bg-amber-500/10 p-2 rounded-xl border border-amber-500/25 mt-1">
+                          <span className="text-[11px] text-amber-300 font-bold mr-1 shrink-0 flex items-center gap-1 w-full sm:w-auto">
                             <span>👑</span>
                             <span>Patron Özel:</span>
                           </span>
@@ -3669,7 +3679,7 @@ export default function App() {
                     { id: "sorular", label: "📚 Sorular" },
                     { id: "program", label: "📅 Ders Programı" },
                     { id: "moderasyon", label: "🛡️ Anonim Denetim" },
-                    { id: "kullanicilar", label: "👥 Kullanıcılar" }
+                    { id: "talepler", label: "🔄 Şube Talepleri" }
                   ].map((item) => (
                     <button
                       key={item.id}
@@ -3816,6 +3826,64 @@ export default function App() {
                       </button>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* SUB-TAB: TALEPLER (ŞUBE DEĞİŞİKLİĞİ) */}
+            {adminTab === "talepler" && (
+              <div className={`col-span-12 ${cardGlass} p-6`}>
+                <h3 className="display text-[18px] font-bold flex items-center gap-2">
+                  <span>🔄 Öğrenci Şube Değiştirme Talepleri</span>
+                </h3>
+                <div className="mt-4 flex flex-col gap-3">
+                  {branchRequests.length === 0 ? (
+                    <div className="text-center py-6 text-white/50 text-[13px]">
+                      Şu an bekleyen şube değişikliği talebi yok.
+                    </div>
+                  ) : (
+                    branchRequests.map((req) => (
+                      <div key={req.id} className="p-4 rounded-[16px] bg-white/[0.04] border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-[13px]">
+                        <div className="flex-1">
+                          <div className="text-white/90 font-medium">
+                            <strong className="text-amber-300">{req.name}</strong> kullanıcısı şube değişikliği talep ediyor.
+                          </div>
+                          <div className="mt-1 flex items-center gap-3 text-[12px] font-mono">
+                            <span className="text-red-300 line-through">Eski: {req.currentBranch}</span>
+                            <span>➡️</span>
+                            <span className="text-emerald-300 font-bold">Yeni: {req.requestedBranch}</span>
+                          </div>
+                          <div className="text-[10px] text-white/40 mt-1">E-Posta: {req.userId}</div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              // Onayla
+                              setBranchRequests(prev => prev.filter(r => r.id !== req.id));
+                              // Local update if the patron is the user (which shouldn't happen, but just in case)
+                              if (req.name === userProfile.name) {
+                                setUserProfile(prev => ({...prev, grade: req.requestedBranch}));
+                              }
+                              alert(`${req.name} isimli öğrencinin şubesi ${req.requestedBranch} olarak güncellendi (Simülasyon).`);
+                            }}
+                            className="px-4 py-2 rounded-full bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500 hover:text-white font-bold transition flex items-center gap-1.5 shrink-0"
+                          >
+                            <span>✅</span> Onayla
+                          </button>
+                          <button
+                            onClick={() => {
+                              // Reddet
+                              setBranchRequests(prev => prev.filter(r => r.id !== req.id));
+                              alert("Talep reddedildi.");
+                            }}
+                            className="px-4 py-2 rounded-full bg-red-500/20 text-red-300 hover:bg-red-500 hover:text-white font-bold transition flex items-center gap-1.5 shrink-0"
+                          >
+                            <span>❌</span> Reddet
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             )}
@@ -3989,22 +4057,40 @@ export default function App() {
               </div>
 
               <div>
-                <label className="text-[12px] font-semibold text-white/70 block mb-1.5">9. Sınıf Şubeniz</label>
-                <div className="grid grid-cols-4 gap-2">
-                  {AVAILABLE_BRANCHES.map((b) => (
-                    <button
-                      key={b}
-                      type="button"
-                      onClick={() => setEditGrade(b)}
-                      className={`h-10 rounded-[12px] font-bold text-[13px] border transition-all ${
-                        editGrade === b
-                          ? "bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white border-white shadow-md scale-105"
-                          : "bg-white/[0.05] border-white/10 text-white/60 hover:bg-white/10"
-                      }`}
-                    >
-                      {b}
-                    </button>
-                  ))}
+                <label className="text-[12px] font-semibold text-white/70 block mb-1.5">Mevcut Şubeniz</label>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  <div className="px-4 py-2.5 rounded-[12px] bg-white/5 border border-white/10 font-bold text-[13px] text-center shrink-0">
+                    {userProfile.grade}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newBranch = prompt("Geçmek istediğiniz şubeyi girin (Örn: 9-B):");
+                      if (newBranch) {
+                        const formattedBranch = newBranch.trim().toUpperCase();
+                        if (AVAILABLE_BRANCHES.includes(formattedBranch)) {
+                          if (formattedBranch === userProfile.grade) {
+                            alert("Zaten bu şubedesiniz.");
+                            return;
+                          }
+                          setBranchRequests(prev => [...prev, {
+                            id: Date.now().toString(),
+                            userId: userProfile.email || userProfile.name,
+                            name: userProfile.name,
+                            currentBranch: userProfile.grade,
+                            requestedBranch: formattedBranch,
+                            status: 'pending'
+                          }]);
+                          alert("Şube değiştirme talebiniz Patron'a iletildi. Onaylandığında şubeniz güncellenecektir.");
+                        } else {
+                          alert("Geçersiz şube. Lütfen geçerli bir şube girin (Örn: 9-A, 9-B, 9-C, 9-D).");
+                        }
+                      }
+                    }}
+                    className="flex-1 py-2.5 rounded-[12px] bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold text-[12px] hover:bg-amber-500 hover:text-black transition cursor-pointer"
+                  >
+                    🔄 Şube Değiştirme Talebi Gönder
+                  </button>
                 </div>
               </div>
 
