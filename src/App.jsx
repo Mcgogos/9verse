@@ -2364,12 +2364,34 @@ export default function App() {
               </form>
             )}
             
-            <div className="mt-8 text-center border-t border-white/5 pt-4">
+            <div 
+              className="mt-8 text-center border-t border-white/5 pt-4 cursor-pointer hover:opacity-80 transition"
+              onClick={() => {
+                const adminProfile = {
+                  name: "Patron",
+                  email: "admin@9verse.com",
+                  password: "",
+                  title: "Patron",
+                  grade: "",
+                  avatar: "/logo.png",
+                  bio: "9VERSE Evrensel Patron.",
+                  isAdmin: true,
+                  accountType: "Yönetici"
+                };
+                setUserProfile(adminProfile);
+                setIsAdminAuthenticated(true);
+                setIsRegistered(true);
+                setShowRegistrationScreen(false);
+                setActiveTab("admin");
+                window.scrollTo({ top: 0, behavior: "smooth" });
+                showToast("👑 Patron Yetkisiyle Giriş Yapıldı! ⚡");
+              }}
+            >
               <span className="text-[11px] font-mono tracking-widest text-white/30 uppercase block">
-                Designer & Coder
+                Coder & Desinger
               </span>
               <span className="text-[12px] font-bold tracking-widest text-cyan-500/50 block mt-0.5">
-                Eymen HACIMURTAZAOĞLU
+                Eymen MURTAZAOĞLU
               </span>
             </div>
           </div>
