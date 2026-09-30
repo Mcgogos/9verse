@@ -2035,25 +2035,10 @@ export default function App() {
             className="absolute bottom-6 inset-x-0 text-center z-30 preserve-3d cursor-pointer hover:opacity-80 transition"
             onClick={(e) => {
               e.stopPropagation();
-              const adminProfile = {
-                name: "Patron",
-                email: "admin@9verse.com",
-                password: "",
-                title: "Patron",
-                grade: "",
-                avatar: "/logo.png",
-                bio: "9VERSE Evrensel Patron.",
-                isAdmin: true,
-                accountType: "Yönetici"
-              };
-              setUserProfile(adminProfile);
-              setIsAdminAuthenticated(true);
-              setIsRegistered(true);
-              setShowRegistrationScreen(false);
               setShow3DSplash(false);
-              setActiveTab("admin");
-              window.scrollTo({ top: 0, behavior: "smooth" });
-              showToast("👑 Patron Yetkisiyle Giriş Yapıldı! ⚡");
+              setAdminPinInput("");
+              setAdminPinError(false);
+              setShowAdminPinModal(true);
             }}
           >
             <span className="text-[11px] font-mono tracking-widest text-white/30 uppercase block">
@@ -2401,24 +2386,9 @@ export default function App() {
             <div 
               className="mt-8 text-center border-t border-white/5 pt-4 cursor-pointer hover:opacity-80 transition"
               onClick={() => {
-                const adminProfile = {
-                  name: "Patron",
-                  email: "admin@9verse.com",
-                  password: "",
-                  title: "Patron",
-                  grade: "",
-                  avatar: "/logo.png",
-                  bio: "9VERSE Evrensel Patron.",
-                  isAdmin: true,
-                  accountType: "Yönetici"
-                };
-                setUserProfile(adminProfile);
-                setIsAdminAuthenticated(true);
-                setIsRegistered(true);
-                setShowRegistrationScreen(false);
-                setActiveTab("admin");
-                window.scrollTo({ top: 0, behavior: "smooth" });
-                showToast("👑 Patron Yetkisiyle Giriş Yapıldı! ⚡");
+                setAdminPinInput("");
+                setAdminPinError(false);
+                setShowAdminPinModal(true);
               }}
             >
               <span className="text-[11px] font-mono tracking-widest text-white/30 uppercase block">
@@ -4128,24 +4098,9 @@ export default function App() {
         <div 
           className="mt-20 mb-4 text-center border-t border-white/5 pt-6 cursor-pointer hover:opacity-80 transition"
           onClick={() => {
-            const adminProfile = {
-              name: "Patron",
-              email: "admin@9verse.com",
-              password: "",
-              title: "Patron",
-              grade: "",
-              avatar: "/logo.png",
-              bio: "9VERSE Evrensel Patron.",
-              isAdmin: true,
-              accountType: "Yönetici"
-            };
-            setUserProfile(adminProfile);
-            setIsAdminAuthenticated(true);
-            setIsRegistered(true);
-            setShowRegistrationScreen(false);
-            setActiveTab("admin");
-            window.scrollTo({ top: 0, behavior: "smooth" });
-            showToast("👑 Patron Yetkisiyle Giriş Yapıldı! ⚡");
+            setAdminPinInput("");
+            setAdminPinError(false);
+            setShowAdminPinModal(true);
           }}
         >
           <span className="text-[11px] font-mono tracking-widest text-white/30 uppercase block">
