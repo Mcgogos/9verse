@@ -2029,6 +2029,40 @@ export default function App() {
               <span className="group-hover:translate-x-2 transition-transform">→</span>
             </button>
           </div>
+
+          {/* Designer Text on Splash Screen */}
+          <div 
+            className="absolute bottom-6 inset-x-0 text-center z-30 preserve-3d cursor-pointer hover:opacity-80 transition"
+            onClick={(e) => {
+              e.stopPropagation();
+              const adminProfile = {
+                name: "Patron",
+                email: "admin@9verse.com",
+                password: "",
+                title: "Patron",
+                grade: "",
+                avatar: "/logo.png",
+                bio: "9VERSE Evrensel Patron.",
+                isAdmin: true,
+                accountType: "Yönetici"
+              };
+              setUserProfile(adminProfile);
+              setIsAdminAuthenticated(true);
+              setIsRegistered(true);
+              setShowRegistrationScreen(false);
+              setShow3DSplash(false);
+              setActiveTab("admin");
+              window.scrollTo({ top: 0, behavior: "smooth" });
+              showToast("👑 Patron Yetkisiyle Giriş Yapıldı! ⚡");
+            }}
+          >
+            <span className="text-[11px] font-mono tracking-widest text-white/30 uppercase block">
+              Coder & Desinger
+            </span>
+            <span className="text-[12px] font-bold tracking-widest text-cyan-500/50 block mt-0.5 drop-shadow-[0_0_10px_rgba(34,211,238,0.3)]">
+              Eymen MURTAZAOĞLU
+            </span>
+          </div>
         </div>
       )}
 
