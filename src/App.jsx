@@ -634,7 +634,7 @@ export default function App() {
   const [showMatrix, setShowMatrix] = useState(false);
   const [toastMsg, setToastMsg] = useState(null);
 
-  // Background Music Player (Tarayıcı politikaları nedeniyle ilk tıklamaya kadar kapalı başlamalıdır)
+  // Background Music Player
   const [isPlayingMusic, setIsPlayingMusic] = useState(false);
 
   function toggleBackgroundMusic() {
