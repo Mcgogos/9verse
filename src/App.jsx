@@ -2610,8 +2610,8 @@ export default function App() {
         <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2 md:mt-0">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => handleTabChange("kampus")}
-              className="md:hidden w-11 h-11 rounded-[16px] overflow-hidden border border-white/20 shrink-0 shadow-md"
+              onClick={handleLogoClick}
+              className="md:hidden w-11 h-11 rounded-[16px] overflow-hidden border border-white/20 shrink-0 shadow-md active:scale-95 transition"
             >
               <img src="/logo.png" alt="9VERSE" className="w-full h-full object-cover" />
             </button>
